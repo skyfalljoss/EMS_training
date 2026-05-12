@@ -1,0 +1,14 @@
+venv/
+.env
+__pycache__/
+*.pyc
+.vscode/
+
+.claude/
+.opencode/
+Agent.md
+
+htmlcov/
+.pytest_cache/
+.coverage
+.ideal
