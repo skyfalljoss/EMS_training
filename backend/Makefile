@@ -1,6 +1,10 @@
+.PHONY: install run tests
+
 install:
 	uv pip install -r requirements.txt
 
 run:
 	uvicorn app.main:app --reload
 
+tests:
+	pytest --cov=app tests/
