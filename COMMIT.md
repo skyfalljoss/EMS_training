@@ -25,13 +25,13 @@ Bootstrap the Employee Management System (EMS) backend with FastAPI, MongoDB (Mo
 
 When writing commits that involve tests, follow this cycle:
 
-| Phase       | Commit Type | What to do                                                   | Example commit message                          |
-|-------------|-------------|--------------------------------------------------------------|-------------------------------------------------|
-| 🔴 Red      | `test`      | Write a failing test that defines the expected behaviour     | `test(health): add failing health check test`   |
-| 🟢 Green    | `feat`/`fix`| Write the minimum code to make the test pass                 | `feat(health): implement GET /health endpoint`  |
-| 🔵 Refactor | `refactor`  | Clean up code without changing behaviour (tests still pass)  | `refactor(health): extract db ping into helper` |
+| Phase       | Commit Type | What to do                                                   | Example commit message                                         |
+|-------------|-------------|--------------------------------------------------------------|----------------------------------------------------------------|
+| 🔴 Red      | `test`      | Write a failing test that defines the expected behaviour     | `test(health): add failing health check test [RED]`            |
+| 🟢 Green    | `feat`/`fix`| Write the minimum code to make the test pass                 | `feat(health): implement GET /health endpoint [GREEN]`         |
+| 🔵 Refactor | `refactor`  | Clean up code without changing behaviour (tests still pass)  | `refactor(health): extract db ping into helper [REFACTOR]`     |
 
-> Keep each phase as a **separate commit**. Never skip the Red phase — a test that was never failing proves nothing.
+> Keep each phase as a **separate commit**. The `[RED]`, `[GREEN]`, `[REFACTOR]` suffix makes the TDD cycle **visible in git log** at a glance.
 
 ---
 
