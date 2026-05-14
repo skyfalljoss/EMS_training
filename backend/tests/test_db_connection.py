@@ -1,4 +1,6 @@
-import pytest
+from app.db.mongodb import get_client
+import pytest   
+from unittest.mock import AsyncMock, MagicMock
 
 
 @pytest.mark.asyncio
@@ -39,3 +41,23 @@ async def test_db_collection_crud(test_db):
     await collection.delete_one({"_id": insert_result.inserted_id})
     deleted_doc = await collection.find_one({"_id": insert_result.inserted_id})
     assert deleted_doc is None
+
+
+# add test for ping database connection
+@pytest.mark.asyncio
+async def test_db_ping(): #characterize this test as an async test
+    """Test pinging the MongoDB server."""  
+    try:
+        client = await get_client()
+        result = await client.admin.command("ping")
+        assert result["ok"] == 1
+    except Exception as e:
+        pytest.fail(f"MongoDB ping failed: {str(e)}")
+
+async def test_db_connection_mock_ping(test_db):
+    fake_client = MagicMock()
+    # fake_client.admin.command.return_value = {"ok": 1}
+    fake_client.admin.command = AsyncMock(return_value={"ok": 1})
+    result = await fake_client.admin.command("ping")
+    assert result["ok"] == 1    
+

@@ -1,16 +1,14 @@
 from motor.motor_asyncio import AsyncIOMotorClient
+
 from app.core.settings import settings
 
-_client: AsyncIOMotorClient = None #connect to MongoDB, use global variable to store client instance
-
-
-def get_database():
-    return _client[settings.DB_NAME]
+_client: AsyncIOMotorClient | None = None
 
 
 async def connect_db():
     global _client
     _client = AsyncIOMotorClient(settings.MONGO_URL)
+
 
 async def get_client():
     global _client
@@ -18,9 +16,12 @@ async def get_client():
         await connect_db()
     return _client
 
-async def get_database():
-    client = await get_client()
-    return client[settings.DB_NAME]
+
+def get_database():
+    global _client
+    if _client is None:
+        raise RuntimeError("Database not initialized. Call connect_db() first.")
+    return _client[settings.DB_NAME]
 
 
 async def close_db():
