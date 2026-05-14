@@ -72,6 +72,16 @@ import pytest
 
 @pytest.fixture
 def auth_headers():
+    async def _fix_admin():
+        from motor.motor_asyncio import AsyncIOMotorClient
+        client = AsyncIOMotorClient(settings.MONGO_URL)
+        db = client[settings.DB_NAME]
+        await db["auth_users"].update_one(
+            {"email": "admin@ems.com"},
+            {"$set": {"must_change_password": False}},
+        )
+        client.close()
+    asyncio.run(_fix_admin())
     return {"Authorization": f"Bearer {ADMIN_TOKEN}"}
 
 
