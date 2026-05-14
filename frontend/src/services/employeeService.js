@@ -61,7 +61,8 @@ export async function listEmployees(filters = {}) {
       if (e.department_id && deptMap[e.department_id]) fe.dept = deptMap[e.department_id]
       return fe
     })
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     let list = [..._mockData]
     if (filters.status) list = list.filter(e => e.status === filters.status)
     if (filters.department) list = list.filter(e => e.dept === filters.department)
@@ -79,7 +80,8 @@ export async function getEmployee(id) {
   try {
     const data = await api.getEmployee(id)
     return toFrontend(data)
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     const emp = _mockData.find(e => e.id === Number(id))
     return emp ? toFrontend(emp) : null
   }
@@ -89,7 +91,8 @@ export async function createEmployee(data) {
   try {
     const res = await api.createEmployee(data)
     return toFrontend(res)
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     const emp = { ...data, id: _nextId++, dept: data.department || '', department_id: data.department_id, start: data.start_date || '—' }
     _mockData.push(emp)
     return toFrontend(emp)
@@ -100,7 +103,8 @@ export async function updateEmployee(id, data) {
   try {
     const res = await api.updateEmployee(id, data)
     return toFrontend(res)
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     const idx = _mockData.findIndex(e => e.id === Number(id))
     if (idx === -1) throw new Error('Employee not found')
     const emp = _mockData[idx]
@@ -113,7 +117,8 @@ export async function updateEmployee(id, data) {
 export async function deleteEmployee(id) {
   try {
     await api.deleteEmployee(id)
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     const idx = _mockData.findIndex(e => e.id === Number(id))
     if (idx === -1) throw new Error('Employee not found')
     _mockData.splice(idx, 1)

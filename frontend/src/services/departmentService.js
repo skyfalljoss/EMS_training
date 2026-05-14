@@ -49,7 +49,8 @@ async function _fetchEmployeeCounts() {
       if (id != null) counts[id] = (counts[id] || 0) + 1
     }
     return counts
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     return {}
   }
 }
@@ -61,7 +62,8 @@ export async function listDepartments(filters = {}) {
       _fetchEmployeeCounts(),
     ])
     return data.map(d => ({ ...toFrontend(d), headcount: counts[d.id] ?? 0 }))
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     let list = [..._mockData]
     if (filters.status) list = list.filter(d => d.status === filters.status)
     return list.map(toFrontend)
@@ -72,7 +74,8 @@ export async function getDepartment(id) {
   try {
     const data = await api.getDepartment(id)
     return toFrontend(data)
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     const dept = _mockData.find(d => d.id === Number(id))
     return dept ? toFrontend(dept) : null
   }
@@ -82,7 +85,8 @@ export async function createDepartment(data) {
   try {
     const res = await api.createDepartment(data)
     return toFrontend(res)
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     const dept = { ...data, id: _nextId++ }
     _mockData.push(dept)
     return toFrontend(dept)
@@ -93,7 +97,8 @@ export async function updateDepartment(id, data) {
   try {
     const res = await api.updateDepartment(id, data)
     return toFrontend(res)
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     const idx = _mockData.findIndex(d => d.id === Number(id))
     if (idx === -1) throw new Error('Department not found')
     const updated = { ..._mockData[idx], ...data }
@@ -105,7 +110,8 @@ export async function updateDepartment(id, data) {
 export async function deleteDepartment(id) {
   try {
     await api.deleteDepartment(id)
-  } catch {
+  } catch (err) {
+    if (err.status) throw err
     const idx = _mockData.findIndex(d => d.id === Number(id))
     if (idx === -1) throw new Error('Department not found')
     _mockData.splice(idx, 1)
