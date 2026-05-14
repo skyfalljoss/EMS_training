@@ -1,2 +1,11 @@
 .DS_Store
 venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+.superpowers/
+.vscode/
+node_modules/
+dist/
