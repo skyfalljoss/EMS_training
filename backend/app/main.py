@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.api.routes.departments import router as departments_router
 from app.api.routes.employees import router as employees_router
 from app.api.routes.health import router as health_router
+from app.api.routes.auth import router as auth_router
 from app.core.settings import settings
 from app.data.sample_departments import SAMPLE_DEPARTMENTS
 from app.data.sample_employees import SAMPLE_EMPLOYEES
@@ -46,6 +47,7 @@ def create_app() -> FastAPI:
     app.include_router(departments_router)
     app.include_router(health_router)
     app.include_router(employees_router)
+    app.include_router(auth_router)
 
     @app.get("/", tags=["root"])
     async def root():

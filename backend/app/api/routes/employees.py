@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 
 from app.controllers.employee_controller import EmployeeController
-from app.dependencies.controllers import get_employee_controller
+from app.dependencies.employees import get_employee_controller
 from app.models.employee import EmployeeCreate, EmployeeResponse, EmployeeUpdate
 
 router = APIRouter(prefix="/employees", tags=["employees"])

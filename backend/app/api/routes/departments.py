@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from app.controllers.department_controller import DepartmentController
-from app.dependencies.controllers import get_department_controller
+from app.dependencies.departments import get_department_controller
 from app.models.department import DepartmentCreate, DepartmentResponse, DepartmentUpdate
 
 router = APIRouter(prefix="/departments", tags=["departments"])
