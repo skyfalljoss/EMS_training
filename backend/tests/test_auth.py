@@ -69,6 +69,9 @@ def test_change_password(auth_headers, api):
         "new_password": "NewAdmin@5678",
     }, headers=auth_headers)
     assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
 
 
 def test_health_is_public(api):

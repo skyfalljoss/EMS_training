@@ -66,18 +66,18 @@ async def activate_user(
     return {"message": "User activated"}
 
 
-@router.put("/password")
+@router.put("/password", response_model=TokenResponse)
 async def change_password(
     body: PasswordChangeRequest,
     controller: AuthController = Depends(get_auth_controller),
     current_user: dict = Depends(get_current_user),
 ):
-    success = await controller.change_password(
+    result = await controller.change_password(
         current_user["id"], body.old_password, body.new_password
     )
-    if not success:
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current password is incorrect",
         )
-    return {"message": "Password changed successfully"}
+    return result

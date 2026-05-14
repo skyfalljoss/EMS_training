@@ -80,12 +80,12 @@ class AuthController:
         await self.repo.update(user_id, {"is_active": True})
         return True
 
-    async def change_password(self, user_id: int, old_password: str, new_password: str) -> bool:
+    async def change_password(self, user_id: int, old_password: str, new_password: str) -> Optional[dict]:
         user = await self.repo.find_by_id(user_id)
         if user is None:
-            return False
+            return None
         if not verify_password(old_password, user["password_hash"]):
-            return False
+            return None
         new_hash = hash_password(new_password)
         await self.repo.update(user_id, {
             "password_hash": new_hash,
@@ -93,7 +93,14 @@ class AuthController:
             "failed_attempts": 0,
             "locked_until": None,
         })
-        return True
+        token_data = {
+            "sub": str(user["id"]),
+            "role": user["auth_role"],
+            "employee_id": user.get("employee_id"),
+            "email": user["email"],
+            "must_change_pwd": False,
+        }
+        return {"access_token": create_access_token(data=token_data), "token_type": "bearer"}
 
     async def get_user(self, user_id: int) -> Optional[dict]:
         return await self.repo.find_by_id(user_id)
