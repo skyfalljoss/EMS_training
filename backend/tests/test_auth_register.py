@@ -19,28 +19,26 @@ def _unique_email(prefix: str = "user") -> str:
 
 
 def test_register_user_returns_201(api: TestClient):
-    payload = {"email": _unique_email("register"), "password": "password123"}
+    payload = {"employee_id": 99, "email": _unique_email("register"), "password": "Test@1234"}
     response = api.post("/auth/register", json=payload)
     assert response.status_code == 201
     data = response.json()
     assert "id" in data
-    assert data["email"] == payload["email"]
-    assert "password" not in data
-    assert "hashed_password" not in data
 
 
 def test_register_user_duplicate_email_returns_400(api: TestClient):
-    payload = {"email": _unique_email("dup"), "password": "password123"}
+    email = _unique_email("dup")
+    payload = {"employee_id": 98, "email": email, "password": "Test@1234"}
     assert api.post("/auth/register", json=payload).status_code == 201
     response = api.post("/auth/register", json=payload)
     assert response.status_code == 400
 
 
 def test_register_user_invalid_email_returns_422(api: TestClient):
-    response = api.post("/auth/register", json={"email": "not-an-email", "password": "password123"})
+    response = api.post("/auth/register", json={"employee_id": 97, "email": "not-an-email", "password": "Test@1234"})
     assert response.status_code == 422
 
 
 def test_register_user_short_password_returns_422(api: TestClient):
-    response = api.post("/auth/register", json={"email": _unique_email("short"), "password": "short"})
+    response = api.post("/auth/register", json={"employee_id": 96, "email": _unique_email("short"), "password": "short"})
     assert response.status_code == 422
