@@ -6,6 +6,8 @@ os.environ["DB_NAME"] = "ems_test_db"
 os.environ["JWT_SECRET_KEY"] = "dev-secret-key"
 os.environ["JWT_ALGORITHM"] = "HS256"
 os.environ["JWT_ACCESS_TOKEN_EXPIRE_MINUTES"] = "30"
+os.environ["BCRYPT_WORK_FACTOR"] = "4"
+os.environ["CORS_ORIGINS"] = '["*"]'
 
 import httpx
 import pytest_asyncio
@@ -13,6 +15,28 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.core.settings import settings
 from app.main import app
+
+from app.core.security import create_access_token
+from app.core.permissions import AuthRole
+
+ADMIN_TOKEN = create_access_token({
+    "sub": "1",
+    "role": AuthRole.ADMIN.value,
+    "employee_id": 1,
+    "email": "admin@ems.com",
+})
+MANAGER_TOKEN = create_access_token({
+    "sub": "2",
+    "role": AuthRole.MANAGER.value,
+    "employee_id": 2,
+    "email": "manager@ems.com",
+})
+EMPLOYEE_TOKEN = create_access_token({
+    "sub": "3",
+    "role": AuthRole.EMPLOYEE.value,
+    "employee_id": 3,
+    "email": "employee@ems.com",
+})
 
 
 def _drop_test_db():
@@ -41,3 +65,21 @@ async def test_db():
     yield db
     await mongo.drop_database(settings.MONGO_TEST_DB_NAME)
     mongo.close()
+
+
+import pytest
+
+
+@pytest.fixture
+def auth_headers():
+    return {"Authorization": f"Bearer {ADMIN_TOKEN}"}
+
+
+@pytest.fixture
+def manager_headers():
+    return {"Authorization": f"Bearer {MANAGER_TOKEN}"}
+
+
+@pytest.fixture
+def employee_headers():
+    return {"Authorization": f"Bearer {EMPLOYEE_TOKEN}"}
