@@ -5,6 +5,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 
 from app.controllers.employee_controller import EmployeeController
+from app.core.permissions import Permission
+from app.dependencies.auth import require_password_not_expired, require_permissions
 from app.dependencies.employees import get_employee_controller
 from app.models.employee import EmployeeCreate, EmployeeResponse, EmployeeUpdate
 
@@ -20,8 +22,10 @@ router = APIRouter(prefix="/employees", tags=["employees"])
 async def create_employee(
     payload: EmployeeCreate,
     controller: EmployeeController = Depends(get_employee_controller),
+    current_user: dict = Depends(require_permissions(Permission.EMPLOYEE_CREATE)),
+    _: dict = Depends(require_password_not_expired),
 ):
-    return await controller.create(payload)
+    return await controller.create(payload, current_user)
 
 
 @router.get(
@@ -34,8 +38,10 @@ async def list_employees(
     role: Optional[str] = Query(None, description="Filter by role"),
     name: Optional[str] = Query(None, description="Case-insensitive name search"),
     controller: EmployeeController = Depends(get_employee_controller),
+    current_user: dict = Depends(require_permissions(Permission.EMPLOYEE_READ)),
+    _: dict = Depends(require_password_not_expired),
 ):
-    return await controller.list(department_id, role, name)
+    return await controller.list(department_id, role, name, current_user)
 
 
 @router.get(
@@ -46,8 +52,10 @@ async def list_employees(
 async def get_employee(
     employee_id: int,
     controller: EmployeeController = Depends(get_employee_controller),
+    current_user: dict = Depends(require_permissions(Permission.EMPLOYEE_READ)),
+    _: dict = Depends(require_password_not_expired),
 ):
-    return await controller.get(employee_id)
+    return await controller.get(employee_id, current_user)
 
 
 @router.put(
@@ -59,8 +67,10 @@ async def update_employee(
     employee_id: int,
     payload: EmployeeUpdate,
     controller: EmployeeController = Depends(get_employee_controller),
+    current_user: dict = Depends(require_permissions(Permission.EMPLOYEE_UPDATE)),
+    _: dict = Depends(require_password_not_expired),
 ):
-    return await controller.update(employee_id, payload)
+    return await controller.update(employee_id, payload, current_user)
 
 
 @router.delete(
@@ -70,5 +80,7 @@ async def update_employee(
 async def delete_employee(
     employee_id: int,
     controller: EmployeeController = Depends(get_employee_controller),
+    current_user: dict = Depends(require_permissions(Permission.EMPLOYEE_DELETE)),
+    _: dict = Depends(require_password_not_expired),
 ):
-    return await controller.delete(employee_id)
+    return await controller.delete(employee_id, current_user)
