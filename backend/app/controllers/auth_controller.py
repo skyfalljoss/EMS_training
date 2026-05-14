@@ -1,35 +1,96 @@
-"""Controller layer: validation, business rules and orchestration for the Auth resource."""
-
+from datetime import datetime, timezone, timedelta
 from typing import Optional
+from fastapi import HTTPException, status
 
-from fastapi import APIRouter, HTTPException, status
+from app.core.security import hash_password, verify_password, create_access_token
+from app.core.permissions import AuthRole
+from app.repositories.auth_repository import AuthRepository
 
-from app.auth.utils import hash_password, verify_password
-from app.models.user import ActivityLogEntry, UserCreate, UserInDB, UserResponse
-from app.repositories.user_repository import DuplicateEmailError, UserRepository
+LOCKOUT_THRESHOLD = 5
+LOCKOUT_DURATION_MINUTES = 15
 
 
 class AuthController:
-    """Coordinates validation, password hashing, and the user repository layer."""
+    def __init__(self, repo: Optional[AuthRepository] = None):
+        self.repo = repo or AuthRepository()
 
-    def __init__(self, repo: Optional[UserRepository] = None) -> None:
-        self.repo = repo or UserRepository()
+    async def login(self, email: str, password: str) -> Optional[dict]:
+        user = await self.repo.find_by_email(email)
+        if user is None:
+            return None
+        now = datetime.now(timezone.utc)
+        locked_until = user.get("locked_until")
+        if locked_until and locked_until > now:
+            return None
+        if not verify_password(password, user["password_hash"]):
+            failed = user.get("failed_attempts", 0) + 1
+            update = {"failed_attempts": failed}
+            if failed >= LOCKOUT_THRESHOLD:
+                update["locked_until"] = now + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+            await self.repo.update(user["id"], update)
+            return None
+        await self.repo.update(user["id"], {
+            "last_login": now,
+            "failed_attempts": 0,
+            "locked_until": None,
+        })
+        token_data = {
+            "sub": str(user["id"]),
+            "role": user["auth_role"],
+            "employee_id": user.get("employee_id"),
+            "email": user["email"],
+            "must_change_pwd": user.get("must_change_password", False),
+        }
+        return {"access_token": create_access_token(data=token_data), "token_type": "bearer"}
 
-    async def register_user(self, user_create: UserCreate) -> UserResponse:
-        try:
-            hashed_password = hash_password(user_create.password)
-            user_response = await self.repo.create_user(user_create, hashed_password)
-        except DuplicateEmailError:
+    async def register(self, employee_id: int, email: str, password: str) -> int:
+        password_hash = hash_password(password)
+        return await self.repo.insert({
+            "employee_id": employee_id,
+            "email": email,
+            "password_hash": password_hash,
+            "auth_role": AuthRole.EMPLOYEE.value,
+            "is_active": False,
+        })
+
+    async def create_auth_user(self, employee_id: int, email: str, password: str, role: AuthRole) -> int:
+        existing = await self.repo.find_by_email(email)
+        if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered",
+                detail=f"Auth user with email '{email}' already exists",
             )
+        password_hash = hash_password(password)
+        return await self.repo.insert({
+            "employee_id": employee_id,
+            "email": email,
+            "password_hash": password_hash,
+            "auth_role": role.value,
+            "is_active": True,
+            "must_change_password": True,
+        })
 
-        await self.repo.append_activity_log(
-            user_id=user_response.id,
-            activity_log_entry=ActivityLogEntry(
-                action="User Registration",
-                details=f"User {user_create.email} registered successfully.",
-            ),
-        )
-        return user_response
+    async def activate_user(self, user_id: int) -> bool:
+        await self.repo.update(user_id, {"is_active": True})
+        return True
+
+    async def change_password(self, user_id: int, old_password: str, new_password: str) -> bool:
+        user = await self.repo.find_by_id(user_id)
+        if user is None:
+            return False
+        if not verify_password(old_password, user["password_hash"]):
+            return False
+        new_hash = hash_password(new_password)
+        await self.repo.update(user_id, {
+            "password_hash": new_hash,
+            "must_change_password": False,
+            "failed_attempts": 0,
+            "locked_until": None,
+        })
+        return True
+
+    async def get_user(self, user_id: int) -> Optional[dict]:
+        return await self.repo.find_by_id(user_id)
+
+    async def list_users(self) -> list[dict]:
+        return await self.repo.find_all()
