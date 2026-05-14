@@ -12,6 +12,8 @@ from app.api.routes.audit import router as audit_router
 from app.api.routes.auth import router as auth_router
 from app.core.permissions import AuthRole
 from app.core.settings import settings
+from app.middleware.ratelimit import RateLimitMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.data.sample_departments import SAMPLE_DEPARTMENTS
 from app.data.sample_employees import SAMPLE_EMPLOYEES
 from app.db.mongodb import close_db, connect_db
@@ -65,6 +67,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RateLimitMiddleware)
     app.state.settings = settings
 
     app.include_router(departments_router)
