@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { listEmployees } from '../services/employeeService'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Sidebar({ open, onClose }) {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [empCount, setEmpCount] = useState(null)
 
   useEffect(() => {
@@ -38,17 +41,24 @@ export default function Sidebar({ open, onClose }) {
           Leave
           <span className="badge">12</span>
         </NavLink></li>
-        <li><NavLink to="/payroll" className={({isActive}) => isActive ? 'active' : ''}>
-          <svg className="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2 8h16"/><circle cx="10" cy="12" r="2"/></svg>
-          Payroll
-        </NavLink></li>
+        {user?.role !== 'employee' && (
+          <li><NavLink to="/payroll" className={({isActive}) => isActive ? 'active' : ''}>
+            <svg className="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2 8h16"/><circle cx="10" cy="12" r="2"/></svg>
+            Payroll
+          </NavLink></li>
+        )}
       </ul>
       <div className="sidebar-footer">
-        <div className="avatar">AC</div>
-        <div className="info">
-          <div className="name">Alex Chen</div>
-          <div className="role">HR Manager</div>
+        <div className="avatar">
+          {user?.email ? user.email[0].toUpperCase() : '?'}
         </div>
+        <div className="info">
+          <div className="name">{user?.email?.split('@')[0] || 'User'}</div>
+          <div className="role">{user?.role || '—'}</div>
+        </div>
+        <button className="logout-btn" onClick={() => { logout(); navigate('/login', { replace: true }) }}>
+          Logout
+        </button>
       </div>
     </nav>
   )
