@@ -4,6 +4,7 @@ import { getDepartment, deleteDepartment } from '../services/departmentService'
 import { listEmployees } from '../services/employeeService'
 import ConfirmModal from '../components/ConfirmModal'
 import DepartmentFormModal from '../components/DepartmentFormModal'
+import { usePermissions } from '../hooks/usePermissions'
 
 const statusLabel = {
   active: 'Active',
@@ -14,6 +15,7 @@ const statusLabel = {
 export default function DepartmentProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { canUpdate, canDelete } = usePermissions()
   const [department, setDepartment] = useState(undefined)
   const [employees, setEmployees] = useState([])
   const [formOpen, setFormOpen] = useState(false)
@@ -81,12 +83,16 @@ export default function DepartmentProfile() {
             </div>
           </div>
           <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
-            <button style={iconBtnStyle} onClick={() => setFormOpen(true)} title="Edit department">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button style={{...iconBtnStyle,color:'var(--danger)'}} onClick={() => setConfirmDelete(true)} title="Delete department">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-            </button>
+            {canUpdate && (
+              <button style={iconBtnStyle} onClick={() => setFormOpen(true)} title="Edit department">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+            )}
+            {canDelete && (
+              <button style={{...iconBtnStyle,color:'var(--danger)'}} onClick={() => setConfirmDelete(true)} title="Delete department">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            )}
           </div>
         </div>
 

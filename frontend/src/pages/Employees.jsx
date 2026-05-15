@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listEmployees } from '../services/employeeService'
 import EmployeeFormModal from '../components/EmployeeFormModal'
+import { usePermissions } from '../hooks/usePermissions'
 
 const statusLabel = {
   active: 'Active',
@@ -12,6 +13,7 @@ const statusLabel = {
 
 export default function Employees() {
   const navigate = useNavigate()
+  const { canCreate } = usePermissions()
   const [filter, setFilter] = useState('all')
   const [employees, setEmployees] = useState([])
   const [formOpen, setFormOpen] = useState(false)
@@ -37,7 +39,9 @@ export default function Employees() {
               </span>
             ))}
           </div>
-          <span className="action" onClick={() => setFormOpen(true)}>+ Add Employee</span>
+          {canCreate && (
+            <span className="action" onClick={() => setFormOpen(true)}>+ Add Employee</span>
+          )}
         </div>
         <div className="table-wrap">
           <table>

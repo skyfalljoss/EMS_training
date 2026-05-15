@@ -34,7 +34,7 @@ export default function ChangePassword() {
     <div className="login-page">
       <div className="glass-card login-card">
         <h1>Change Password</h1>
-        <p className="subtitle">You must change your password before continuing.</p>
+        <p className="subtitle">Update your account password.</p>
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <input type="password" placeholder="Current password" value={oldPwd}

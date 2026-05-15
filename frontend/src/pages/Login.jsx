@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 export default function Login() {
-  const { login, mustChangePassword, isAuthenticated } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
@@ -13,7 +13,7 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || '/dashboard'
 
-  if (isAuthenticated && !mustChangePassword) {
+  if (isAuthenticated) {
     navigate(from, { replace: true })
     return null
   }
@@ -23,13 +23,9 @@ export default function Login() {
     setError('')
     setSaving(true)
     try {
-      const payload = await login(email, password)
+      await login(email, password)
       setPassword('')
-      if (payload?.must_change_pwd) {
-        navigate('/change-password', { replace: true })
-      } else {
-        navigate(from, { replace: true })
-      }
+      navigate(from, { replace: true })
     } catch (err) {
       if (err.status === 429) {
         setError('Too many login attempts. Try again in 1 minute.')
