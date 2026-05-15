@@ -11,7 +11,7 @@ from app.controllers.employee_controller import EmployeeController
 from app.core.permissions import AuthRole
 from app.models.auth_user import AuthUserResponse
 from app.repositories.auth_repository import AuthRepository
-from app.core import settings
+from app.core.settings import settings
 
 # LOCKOUT_THRESHOLD = 5
 # LOCKOUT_DURATION_MINUTES = 15
