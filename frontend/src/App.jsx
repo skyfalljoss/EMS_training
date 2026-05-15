@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ChangePassword from './pages/ChangePassword'
+import CreateUser from './pages/CreateUser'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import TweaksPanel from './components/TweaksPanel'
@@ -41,7 +42,12 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="bg-blobs">{/* blobs */}</div>
+      <div className="bg-blobs">
+        <div className="bg-blob b1"></div>
+        <div className="bg-blob b2"></div>
+        <div className="bg-blob b3"></div>
+        <div className="bg-blob b4"></div>
+      </div>
       {!isAuthPage && <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
       <div className={isAuthPage ? "auth-layout" : "main"}>
         {!isAuthPage && <TopBar
@@ -56,6 +62,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/change-password" element={<ChangePassword />} />
+            <Route path="/admin/users" element={<ProtectedRoute><CreateUser /></ProtectedRoute>} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />

@@ -20,3 +20,10 @@ export function changePassword(old_password, new_password) {
     body: JSON.stringify({ old_password, new_password }),
   })
 }
+
+export function createAuthUser(employee_id, email, password, auth_role) {
+  return request('/auth/users', {
+    method: 'POST',
+    body: JSON.stringify({ employee_id, email, password, auth_role }),
+  })
+}

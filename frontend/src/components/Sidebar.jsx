@@ -47,6 +47,12 @@ export default function Sidebar({ open, onClose }) {
             Payroll
           </NavLink></li>
         )}
+        {user?.role === 'admin' && (
+          <li><NavLink to="/admin/users" className={({isActive}) => isActive ? 'active' : ''}>
+            <svg className="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 11l-4 4"/><path d="M5 11l4 4"/><circle cx="17" cy="6" r="3"/><path d="M14 14l2-3 3 3"/></svg>
+            Users
+          </NavLink></li>
+        )}
       </ul>
       <div className="sidebar-footer">
         <div className="avatar">
