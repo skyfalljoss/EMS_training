@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer
 from typing import Callable
 
 from app.controllers.auth_controller import AuthController
-from app.core.security import decode_access_token
+from app.auth.utils import decode_access_token
 from app.core.permissions import AuthRole, Permission, ROLE_PERMISSIONS
 
 security_scheme = HTTPBearer(auto_error=False)
@@ -44,6 +44,17 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account is inactive",
+        )
+    # DB-authoritative role.  Reject unknown values rather than letting
+    # them silently default to "no permissions" (which `require_permissions`
+    # would otherwise treat as a regular non-admin denial).
+    raw_role = user.get("auth_role")
+    try:
+        AuthRole(raw_role)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User has an invalid role assignment",
         )
     return user
 

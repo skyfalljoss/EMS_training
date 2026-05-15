@@ -2,12 +2,29 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 from fastapi import HTTPException, status
 
-from app.core.security import hash_password, verify_password, create_access_token
+from app.auth.utils import hash_password, verify_password, create_access_token
 from app.core.permissions import AuthRole
 from app.repositories.auth_repository import AuthRepository
 
 LOCKOUT_THRESHOLD = 5
 LOCKOUT_DURATION_MINUTES = 15
+
+
+def _sanitize_user(u: dict) -> dict:
+    """Strip Mongo internals and password hash from auth user docs."""
+    return {
+        "id": u.get("id"),
+        "employee_id": u.get("employee_id"),
+        "email": u.get("email"),
+        "auth_role": u.get("auth_role"),
+        "is_active": u.get("is_active", False),
+        "must_change_password": u.get("must_change_password", False),
+        "failed_attempts": u.get("failed_attempts", 0),
+        "locked_until": u.get("locked_until"),
+        "created_at": u.get("created_at"),
+        "updated_at": u.get("updated_at"),
+        "last_login": u.get("last_login"),
+    }
 
 
 class AuthController:
@@ -18,10 +35,13 @@ class AuthController:
         user = await self.repo.find_by_email(email)
         if user is None:
             return None
+        # Check lockout BEFORE password verify so we don't leak valid emails via timing.  Caller returns generic
         now = datetime.now(timezone.utc)
         locked_until = user.get("locked_until")
         if locked_until and locked_until > now:
             return None
+        
+        # Check password.  If invalid, increment failed_attempts and set lockout if threshold is reached.  If valid, reset both.
         if not verify_password(password, user["password_hash"]):
             failed = user.get("failed_attempts", 0) + 1
             update = {"failed_attempts": failed}
@@ -29,14 +49,21 @@ class AuthController:
                 update["locked_until"] = now + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
             await self.repo.update(user["id"], update)
             return None
+        # Reject disabled accounts AFTER password verify so we don't leak
+        # account state via timing.  Caller returns generic "Invalid
+        # credentials" — no enumeration.
+        if not user.get("is_active", False):
+            return None
         await self.repo.update(user["id"], {
             "last_login": now,
             "failed_attempts": 0,
             "locked_until": None,
         })
+        # Token holds identity only.  auth_role is NEVER read from the
+        # token — `get_current_user` re-fetches it from the DB on every
+        # request so that role revocation takes effect immediately.
         token_data = {
             "sub": str(user["id"]),
-            "role": user["auth_role"],
             "employee_id": user.get("employee_id"),
             "email": user["email"],
             "must_change_pwd": user.get("must_change_password", False),
@@ -96,6 +123,13 @@ class AuthController:
         await self.repo.update(user_id, {"is_active": True})
         return True
 
+    async def reject_user(self, user_id: int) -> bool:
+        user = await self.repo.find_by_id(user_id)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        await self.repo.delete(user_id)
+        return True
+
     async def change_password(self, user_id: int, old_password: str, new_password: str) -> Optional[dict]:
         user = await self.repo.find_by_id(user_id)
         if user is None:
@@ -111,7 +145,6 @@ class AuthController:
         })
         token_data = {
             "sub": str(user["id"]),
-            "role": user["auth_role"],
             "employee_id": user.get("employee_id"),
             "email": user["email"],
             "must_change_pwd": False,
@@ -122,4 +155,5 @@ class AuthController:
         return await self.repo.find_by_id(user_id)
 
     async def list_users(self) -> list[dict]:
-        return await self.repo.find_all()
+        users = await self.repo.find_all()
+        return [_sanitize_user(u) for u in users]

@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.controllers.auth_controller import AuthController
 from app.dependencies.auth import (
-    get_auth_controller, get_current_user, require_permissions,
+    get_auth_controller, get_current_user,
+    require_password_not_expired, require_permissions,
 )
 from app.core.permissions import Permission
 from app.models.auth_user import (
@@ -11,6 +12,18 @@ from app.models.auth_user import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.get("/me")
+async def me(current_user: dict = Depends(get_current_user)):
+    return {
+        "id": current_user.get("id"),
+        "employee_id": current_user.get("employee_id"),
+        "email": current_user.get("email"),
+        "auth_role": current_user.get("auth_role"),
+        "is_active": current_user.get("is_active", False),
+        "must_change_password": current_user.get("must_change_password", False),
+    }
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -41,6 +54,7 @@ async def create_auth_user(
     body: AuthUserCreate,
     controller: AuthController = Depends(get_auth_controller),
     _: dict = Depends(require_permissions(Permission.AUTH_USER_CREATE)),
+    __: dict = Depends(require_password_not_expired),
 ):
     user_id = await controller.create_auth_user(
         body.employee_id, body.email, body.password, body.auth_role
@@ -52,6 +66,7 @@ async def create_auth_user(
 async def list_auth_users(
     controller: AuthController = Depends(get_auth_controller),
     _: dict = Depends(require_permissions(Permission.AUTH_USER_CREATE)),
+    __: dict = Depends(require_password_not_expired),
 ):
     return await controller.list_users()
 
@@ -61,9 +76,21 @@ async def activate_user(
     user_id: int,
     controller: AuthController = Depends(get_auth_controller),
     _: dict = Depends(require_permissions(Permission.AUTH_USER_CREATE)),
+    __: dict = Depends(require_password_not_expired),
 ):
     await controller.activate_user(user_id)
     return {"message": "User activated"}
+
+
+@router.delete("/users/{user_id}")
+async def reject_user(
+    user_id: int,
+    controller: AuthController = Depends(get_auth_controller),
+    _: dict = Depends(require_permissions(Permission.AUTH_USER_CREATE)),
+    __: dict = Depends(require_password_not_expired),
+):
+    await controller.reject_user(user_id)
+    return {"message": "User rejected"}
 
 
 @router.put("/password", response_model=TokenResponse)
