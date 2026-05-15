@@ -15,8 +15,8 @@ export default function Payroll() {
         <div className="kpi-card glass-card"><div className="kpi-label">YTD Payroll</div><div className="kpi-value" style={{fontSize:24}}>$75.6M</div><div className="kpi-trend up">↑ 6.1% <span className="kpi-sub">target 93%</span></div></div>
       </div>
 
-      <div className="glass-card">
-        <div className="card-header"><h2>Recent Payroll Runs</h2><span className="action">+ New Run</span></div>
+      <div className="glass-card" style={{padding:0}}>
+        <div className="card-header" style={{padding:'16px 24px 0'}}><h2>Recent Payroll Runs</h2><span className="action">+ New Run</span></div>
         <div className="table-wrap payroll-table-wrap">
           <table>
             <thead><tr><th>Run #</th><th>Period</th><th>Employees</th><th>Gross Pay</th><th>Deductions</th><th>Net Pay</th><th>Status</th></tr></thead>
