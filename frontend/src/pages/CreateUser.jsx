@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
-  createAuthUser,
   listAuthUsers,
   activateAuthUser,
   rejectAuthUser,
+  updateAuthUserRole,
 } from '../api/auth'
 import { listEmployees } from '../api/employees'
 import { useAuth } from '../hooks/useAuth'
 import ConfirmModal from '../components/ConfirmModal'
+import UserFormModal from '../components/UserFormModal'
 
 const roleLabel = { admin: 'Admin', manager: 'Manager', employee: 'Employee' }
 
@@ -28,15 +29,16 @@ export default function CreateUser() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [busyId, setBusyId] = useState(null)
-  const [confirmReject, setConfirmReject] = useState(null)
 
-  // create form
-  const [showCreate, setShowCreate] = useState(false)
-  const [employeeId, setEmployeeId] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [role, setRole] = useState('employee')
-  const [saving, setSaving] = useState(false)
+  // Role edit per-row
+  const [editingRole, setEditingRole] = useState(null)
+  const [newRole, setNewRole] = useState('')
+  const [savingRole, setSavingRole] = useState(false)
+
+  // Create modal
+  const [formOpen, setFormOpen] = useState(false)
+
+  const [confirmReject, setConfirmReject] = useState(null)
 
   const fetch = useCallback(async () => {
     setLoading(true)
@@ -58,7 +60,6 @@ export default function CreateUser() {
 
   const empById = Object.fromEntries(employees.map(e => [e.id, e]))
   const pending = users.filter(u => !u.is_active)
-  const active = users.filter(u => u.is_active)
 
   async function handleApprove(u) {
     setBusyId(u.id)
@@ -89,21 +90,25 @@ export default function CreateUser() {
     }
   }
 
-  async function handleCreate(e) {
-    e.preventDefault()
+  async function handleSaveRole(userId) {
+    setSavingRole(true)
     setError(''); setSuccess('')
-    setSaving(true)
     try {
-      await createAuthUser(Number(employeeId), email, password, role)
-      setEmployeeId(''); setEmail(''); setPassword(''); setRole('employee')
-      setShowCreate(false)
-      setSuccess('User created successfully')
+      await updateAuthUserRole(userId, newRole)
+      setSuccess('Role updated')
+      setEditingRole(null)
+      setNewRole('')
       await fetch()
     } catch (err) {
-      setError(err.message || 'Failed to create user')
+      setError(err.message || 'Failed to update role')
     } finally {
-      setSaving(false)
+      setSavingRole(false)
     }
+  }
+
+  function startEditRole(u) {
+    setEditingRole(u.id)
+    setNewRole(u.auth_role)
   }
 
   if (user?.role !== 'admin') {
@@ -180,43 +185,8 @@ export default function CreateUser() {
       <div className="glass-card">
         <div className="card-header">
           <h3 style={{margin:0}}>All Users <span style={{color:'var(--muted)',fontWeight:400}}>({users.length})</span></h3>
-          <span className="action" onClick={() => setShowCreate(s => !s)}>
-            {showCreate ? '× Cancel' : '+ Create User'}
-          </span>
+          <span className="action" onClick={() => setFormOpen(true)}>+ Create User</span>
         </div>
-
-        {showCreate && (
-          <form onSubmit={handleCreate} style={{padding:'12px 20px 20px',display:'grid',gridTemplateColumns:'repeat(4,1fr) auto',gap:10,alignItems:'end'}}>
-            <label style={{display:'flex',flexDirection:'column',gap:4,fontSize:12}}>
-              Employee
-              <select value={employeeId} onChange={e => setEmployeeId(e.target.value)} required>
-                <option value="">Select…</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>{emp.name} (#{emp.id})</option>
-                ))}
-              </select>
-            </label>
-            <label style={{display:'flex',flexDirection:'column',gap:4,fontSize:12}}>
-              Email
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
-            </label>
-            <label style={{display:'flex',flexDirection:'column',gap:4,fontSize:12}}>
-              Password
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
-            </label>
-            <label style={{display:'flex',flexDirection:'column',gap:4,fontSize:12}}>
-              Role
-              <select value={role} onChange={e => setRole(e.target.value)} required>
-                <option value="employee">Employee</option>
-                <option value="manager">Manager</option>
-                <option value="admin">Admin</option>
-              </select>
-            </label>
-            <button type="submit" className="btn-primary" disabled={saving} style={{padding:'8px 16px'}}>
-              {saving ? 'Creating…' : 'Create'}
-            </button>
-          </form>
-        )}
 
         <div className="table-wrap">
           <table>
@@ -231,7 +201,45 @@ export default function CreateUser() {
                     <tr key={u.id}>
                       <td><div className="emp-name">{u.email}</div></td>
                       <td>{emp ? emp.name : `#${u.employee_id}`}</td>
-                      <td>{roleLabel[u.auth_role] || u.auth_role}</td>
+                      <td>
+                        {editingRole === u.id ? (
+                          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                            <select
+                              value={newRole}
+                              onChange={e => setNewRole(e.target.value)}
+                              style={{fontSize:12,padding:'3px 6px'}}
+                            >
+                              <option value="employee">Employee</option>
+                              <option value="manager">Manager</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                            <button
+                              className="btn-primary"
+                              disabled={savingRole}
+                              onClick={() => handleSaveRole(u.id)}
+                              style={{padding:'3px 8px',fontSize:11,whiteSpace:'nowrap'}}
+                            >
+                              {savingRole ? '…' : 'Save'}
+                            </button>
+                            <button
+                              className="btn-secondary"
+                              disabled={savingRole}
+                              onClick={() => setEditingRole(null)}
+                              style={{padding:'3px 8px',fontSize:11}}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ) : (
+                          <span
+                            className="action"
+                            onClick={() => startEditRole(u)}
+                            style={{cursor:'pointer'}}
+                          >
+                            {roleLabel[u.auth_role] || u.auth_role} ✎
+                          </span>
+                        )}
+                      </td>
                       <td>
                         <span className={`status-pill ${u.is_active ? 'active' : 'on-leave'}`}>
                           {u.is_active ? 'Active' : 'Pending'}
@@ -258,6 +266,14 @@ export default function CreateUser() {
           </table>
         </div>
       </div>
+
+      <UserFormModal
+        key={formOpen ? 'new' : 'closed'}
+        open={formOpen}
+        employees={employees}
+        onClose={() => setFormOpen(false)}
+        onSaved={() => { setFormOpen(false); fetch() }}
+      />
 
       <ConfirmModal
         open={!!confirmReject}

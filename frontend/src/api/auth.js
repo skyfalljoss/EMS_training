@@ -40,6 +40,13 @@ export function rejectAuthUser(user_id) {
   return request(`/auth/users/${user_id}`, { method: 'DELETE' })
 }
 
+export function updateAuthUserRole(user_id, auth_role) {
+  return request(`/auth/users/${user_id}/role`, {
+    method: 'PUT',
+    body: JSON.stringify({ auth_role }),
+  })
+}
+
 export function getMe() {
   return request('/auth/me')
 }
