@@ -274,8 +274,8 @@ body{background:var(--bg-color);color:var(--fg);transition:background-color 0.4s
 /* ── Screens ── */
 .screens{
   flex:1;
-  display: flex;
-  justify-content: center;
+  /* display: flex;
+  justify-content: center; */
   width:100%;
   min-width:0;
   overflow-y:auto;
@@ -723,14 +723,17 @@ a{text-decoration:none;color:inherit}
 }
 
 .login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  max-width: 420px;
+  /* max-width: 420px; */
   padding: 24px;
 }
 
 .login-card.glass-card,
 .glass-card.login-card {
-  padding: 40px 36px;
+  padding: 80px 36px;
 }
 
 .login-card h1 {
@@ -814,6 +817,28 @@ a{text-decoration:none;color:inherit}
 
 .login-card .auth-link a:hover {
   text-decoration: underline;
+}
+
+.login-card .auth-footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.login-card .logout-link {
+  background: none;
+  border: 1px solid var(--border-subtle, rgba(0,0,0,0.15));
+  color: var(--fg-muted);
+  padding: 8px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.login-card .logout-link:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.05);
 }
 
 .sidebar-footer .logout-btn {

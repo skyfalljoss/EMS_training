@@ -32,7 +32,7 @@ export default function ChangePassword() {
 
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="glass-card login-card">
         <h1>Change Password</h1>
         <p className="subtitle">You must change your password before continuing.</p>
         {error && <div className="error">{error}</div>}
@@ -47,7 +47,11 @@ export default function ChangePassword() {
             {saving ? 'Changing…' : 'Change Password'}
           </button>
         </form>
-        <button className="link" onClick={logout}>Logout</button>
+        <div className="auth-footer">
+          <button className="logout-link" onClick={() => { logout(); navigate('/login', { replace: true }) }}>
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   )
