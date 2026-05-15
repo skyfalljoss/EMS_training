@@ -19,6 +19,7 @@ class Permission(str, Enum):
     DEPARTMENT_DELETE  = "department:delete"
     AUTH_USER_CREATE   = "auth:user:create"
     AUTH_USER_DELETE   = "auth:user:delete"
+    AUTH_USER_UPDATE   = "auth:user:update"
     AUDIT_READ         = "audit:read"
     LEAVE_CREATE       = "leave:create"
     LEAVE_APPROVE      = "leave:approve"

@@ -45,6 +45,10 @@ class AuthUserResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @classmethod
+    def from_doc(cls, doc: dict) -> "AuthUserResponse":
+        return cls(**doc)
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -75,3 +79,7 @@ class PasswordChangeRequest(BaseModel):
     @classmethod
     def validate_password_field(cls, v: str) -> str:
         return _validate_password(v)
+
+
+class AuthUserRoleUpdate(BaseModel):
+    auth_role: AuthRole
