@@ -16,11 +16,18 @@ def test_unauthenticated_fails(api):
     assert resp.status_code == 401
 
 
-def test_employee_cannot_create_employee(api, employee_headers):
+def test_employee_can_create_employee(api, employee_headers):
+    import uuid
     resp = api.post("/employees/", json={
-        "name": "Fail", "email": "fail@test.com",
+        "name": "By Employee", "email": f"e-{uuid.uuid4().hex[:8]}@test.com",
         "role": "Eng", "department_id": 1,
     }, headers=employee_headers)
+    assert resp.status_code == 201
+
+
+def test_employee_cannot_update_employee(api, employee_headers):
+    resp = api.put("/employees/3", json={"phone": "+1 555 000 0000"},
+                   headers=employee_headers)
     assert resp.status_code == 403
 
 
@@ -43,10 +50,18 @@ def test_admin_can_delete_employee(api, auth_headers):
     assert resp.status_code == 200
 
 
-def test_employee_cannot_create_department(api, employee_headers):
+def test_employee_can_create_department(api, employee_headers):
+    import uuid
+    code = f"E{uuid.uuid4().hex[:4].upper()}"
     resp = api.post("/departments/", json={
-        "name": "Fail", "code": "FAIL",
+        "name": "By Employee", "code": code,
     }, headers=employee_headers)
+    assert resp.status_code == 201
+
+
+def test_employee_cannot_update_department(api, employee_headers):
+    resp = api.put("/departments/1", json={"name": "Renamed"},
+                   headers=employee_headers)
     assert resp.status_code == 403
 
 
@@ -58,6 +73,12 @@ def test_employee_cannot_delete_department(api, employee_headers):
 def test_manager_cannot_delete_department(api, manager_headers):
     resp = api.delete("/departments/1", headers=manager_headers)
     assert resp.status_code == 403
+
+
+def test_manager_can_update_department(api, manager_headers):
+    resp = api.put("/departments/1", json={"name": "Engineering Renamed"},
+                   headers=manager_headers)
+    assert resp.status_code == 200
 
 
 def test_admin_can_create_department(api, auth_headers):

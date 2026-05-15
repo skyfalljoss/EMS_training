@@ -16,7 +16,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.settings import settings
 from app.main import app
 
-from app.core.security import create_access_token
+from app.auth.utils import create_access_token
 from app.core.permissions import AuthRole
 
 ADMIN_TOKEN = create_access_token({
@@ -70,26 +70,37 @@ async def test_db():
 import pytest
 
 
-@pytest.fixture
-def auth_headers():
-    async def _fix_admin():
-        from motor.motor_asyncio import AsyncIOMotorClient
+def _clear_must_change_password(email: str) -> None:
+    """Flip must_change_password=False for the given seeded auth user.
+
+    The auth controller's create_auth_user() forces must_change_password=True
+    on every insert (so admin-created accounts are forced to rotate).  For
+    tests we need to bypass this for the seeded admin/manager/employee.
+    """
+    async def _do():
         client = AsyncIOMotorClient(settings.MONGO_URL)
         db = client[settings.DB_NAME]
         await db["auth_users"].update_one(
-            {"email": "admin@ems.com"},
-            {"$set": {"must_change_password": False}},
+            {"email": email},
+            {"$set": {"must_change_password": False, "is_active": True}},
         )
         client.close()
-    asyncio.run(_fix_admin())
+    asyncio.run(_do())
+
+
+@pytest.fixture
+def auth_headers():
+    _clear_must_change_password("admin@ems.com")
     return {"Authorization": f"Bearer {ADMIN_TOKEN}"}
 
 
 @pytest.fixture
 def manager_headers():
+    _clear_must_change_password("manager@ems.com")
     return {"Authorization": f"Bearer {MANAGER_TOKEN}"}
 
 
 @pytest.fixture
 def employee_headers():
+    _clear_must_change_password("employee@ems.com")
     return {"Authorization": f"Bearer {EMPLOYEE_TOKEN}"}
