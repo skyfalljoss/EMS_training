@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 export default function Login() {
@@ -36,7 +36,7 @@ export default function Login() {
       } else if (err.status === 401) {
         setError('Invalid email or password.')
       } else {
-        setError(err.message || 'Login failed. Please try again.')
+        setError(err.message || 'Login failed.')
       }
     } finally {
       setSaving(false)
@@ -45,24 +45,24 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="glass-card login-card">
         <h1>EMS Login</h1>
+        <p className="subtitle">Sign in to your account</p>
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleSubmit}>
-          <input
-            type="email" placeholder="Email" value={email}
+          <input type="email" placeholder="Email" value={email}
             onChange={e => setEmail(e.target.value)} required autoFocus
-            autoComplete="email" disabled={saving}
-          />
-          <input
-            type="password" placeholder="Password" value={password}
+            autoComplete="email" disabled={saving} />
+          <input type="password" placeholder="Password" value={password}
             onChange={e => setPassword(e.target.value)} required
-            autoComplete="current-password" disabled={saving}
-          />
+            autoComplete="current-password" disabled={saving} />
           <button type="submit" disabled={saving}>
             {saving ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+        <p className="auth-link">
+          Don't have an account? <Link to="/register">Register</Link>
+        </p>
       </div>
     </div>
   )
