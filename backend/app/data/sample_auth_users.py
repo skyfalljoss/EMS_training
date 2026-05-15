@@ -7,7 +7,7 @@ SAMPLE_AUTH_USERS = [
         "password": "Admin@1234",
         "auth_role": AuthRole.ADMIN,
         "is_active": True,
-        "must_change_password": True,
+        "must_change_password": False,
     },
     {
         "employee_id": 2,
@@ -15,7 +15,7 @@ SAMPLE_AUTH_USERS = [
         "password": "Manager@1234",
         "auth_role": AuthRole.MANAGER,
         "is_active": True,
-        "must_change_password": True,
+        "must_change_password": False,
     },
     {
         "employee_id": 3,
@@ -23,6 +23,6 @@ SAMPLE_AUTH_USERS = [
         "password": "Employee@1234",
         "auth_role": AuthRole.EMPLOYEE,
         "is_active": True,
-        "must_change_password": True,
+        "must_change_password": False,
     },
 ]
