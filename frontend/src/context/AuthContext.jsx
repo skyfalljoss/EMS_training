@@ -45,6 +45,10 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
+  const register = useCallback(async (name, email, password) => {
+    return await authApi.register(name, email, password)
+  }, [])
+
   const changePassword = useCallback(async (old_pwd, new_pwd) => {
     const data = await authApi.changePassword(old_pwd, new_pwd)
     localStorage.setItem('access_token', data.access_token)
@@ -58,7 +62,7 @@ export function AuthProvider({ children }) {
   const mustChangePassword = user?.must_change_pwd === true
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, changePassword, isAuthenticated, mustChangePassword, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, register, changePassword, isAuthenticated, mustChangePassword, loading }}>
       {children}
     </AuthContext.Provider>
   )
