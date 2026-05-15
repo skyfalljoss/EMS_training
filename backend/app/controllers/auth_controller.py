@@ -43,7 +43,7 @@ class AuthController:
         }
         return {"access_token": create_access_token(data=token_data), "token_type": "bearer"}
 
-    async def register(self, employee_id: int, email: str, password: str) -> int:
+    async def register(self, name: str, email: str, password: str) -> int:
         existing = await self.repo.find_by_email(email)
         if existing:
             raise HTTPException(
@@ -52,7 +52,7 @@ class AuthController:
             )
         password_hash = hash_password(password)
         return await self.repo.insert({
-            "employee_id": employee_id,
+            "name": name,
             "email": email,
             "password_hash": password_hash,
             "auth_role": AuthRole.EMPLOYEE.value,

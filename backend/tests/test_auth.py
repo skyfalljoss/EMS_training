@@ -42,7 +42,7 @@ def test_login_nonexistent_email(api):
 
 def test_register_creates_inactive(api):
     response = api.post("/auth/register", json={
-        "employee_id": 99,
+        "name": "New User",
         "email": "new@test.com",
         "password": "NewUser@1234",
     })
@@ -51,7 +51,7 @@ def test_register_creates_inactive(api):
 
 def test_password_validation_short(api):
     response = api.post("/auth/register", json={
-        "employee_id": 99,
+        "name": "Weak User",
         "email": "weak@test.com",
         "password": "short",
     })

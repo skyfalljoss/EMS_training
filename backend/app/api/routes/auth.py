@@ -32,7 +32,7 @@ async def register(
     body: RegisterRequest,
     controller: AuthController = Depends(get_auth_controller),
 ):
-    user_id = await controller.register(body.employee_id, body.email, body.password)
+    user_id = await controller.register(body.name, body.email, body.password)
     return {"id": user_id, "message": "Registration submitted. Awaiting admin approval."}
 
 

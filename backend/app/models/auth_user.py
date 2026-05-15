@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 import re
 from app.core.permissions import AuthRole
@@ -57,7 +57,7 @@ class TokenResponse(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    employee_id: int
+    name: str = Field(..., min_length=1, description="Full name")
     email: EmailStr
     password: str
 
