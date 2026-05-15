@@ -39,9 +39,6 @@ export default function Employees() {
           </div>
           <span className="action" onClick={() => setFormOpen(true)}>+ Add Employee</span>
         </div>
-      </div>
-
-      <div className="glass-card" style={{padding:0}}>
         <div className="table-wrap">
           <table>
             <thead><tr><th>Employee</th><th>Department</th><th>Role</th><th>Status</th><th>Start Date</th></tr></thead>

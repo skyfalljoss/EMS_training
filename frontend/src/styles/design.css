@@ -78,7 +78,7 @@
 
 html,body,#root{height:100%;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
 body{background:var(--bg-color);color:var(--fg);transition:background-color 0.4s ease, color 0.4s ease;}
-#root{display:flex}
+/* #root{display:flex} */
 
 .bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--bg-color);transition:background-color 0.4s ease;}
 .bg-blob{position:absolute;border-radius:50%;filter:blur(90px);animation:float 28s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;mix-blend-mode:var(--bg-blob-mix);transition:opacity 0.4s ease;}
@@ -241,6 +241,10 @@ body{background:var(--bg-color);color:var(--fg);transition:background-color 0.4s
 .breadcrumb{font-size:13px;color:var(--fg-dim);font-weight:600;display:flex;align-items:center;gap:6px}
 .breadcrumb span{color:var(--fg-muted)}
 .topbar-right{display:flex;align-items:center;gap:16px}
+.topbar-user{display:flex;align-items:center;gap:8px}
+.topbar-email{font-size:13px;opacity:0.7;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn-topbar{color:var(--fg-muted);transition:color .2s}
+.logout-btn-topbar:hover{color:#dc2626!important}
 .search-box{
   display:flex;align-items:center;gap:8px;
   background:var(--glass-highlight);
