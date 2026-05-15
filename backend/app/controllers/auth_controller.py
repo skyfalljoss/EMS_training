@@ -1,59 +1,44 @@
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-from fastapi import HTTPException, status
 
 from app.auth.utils import hash_password, verify_password, create_access_token
+from app.core.exceptions import (
+    InvalidCredentialsError,
+    NotFoundError,
+    ValidationError,
+)
+from app.controllers.employee_controller import EmployeeController
 from app.core.permissions import AuthRole
+from app.models.auth_user import AuthUserResponse
 from app.repositories.auth_repository import AuthRepository
+from app.core import settings
 
-LOCKOUT_THRESHOLD = 5
-LOCKOUT_DURATION_MINUTES = 15
-
-
-def _sanitize_user(u: dict) -> dict:
-    """Strip Mongo internals and password hash from auth user docs."""
-    return {
-        "id": u.get("id"),
-        "employee_id": u.get("employee_id"),
-        "email": u.get("email"),
-        "auth_role": u.get("auth_role"),
-        "is_active": u.get("is_active", False),
-        "must_change_password": u.get("must_change_password", False),
-        "failed_attempts": u.get("failed_attempts", 0),
-        "locked_until": u.get("locked_until"),
-        "created_at": u.get("created_at"),
-        "updated_at": u.get("updated_at"),
-        "last_login": u.get("last_login"),
-    }
+# LOCKOUT_THRESHOLD = 5
+# LOCKOUT_DURATION_MINUTES = 15
 
 
 class AuthController:
-    def __init__(self, repo: Optional[AuthRepository] = None):
-        self.repo = repo or AuthRepository()
+    def __init__(self, repo: AuthRepository, employee_controller: EmployeeController):
+        self.repo = repo
+        self.employee_controller = employee_controller
 
-    async def login(self, email: str, password: str) -> Optional[dict]:
+    async def login(self, email: str, password: str) -> dict:
         user = await self.repo.find_by_email(email)
         if user is None:
-            return None
-        # Check lockout BEFORE password verify so we don't leak valid emails via timing.  Caller returns generic
+            raise InvalidCredentialsError("Invalid credentials")
         now = datetime.now(timezone.utc)
         locked_until = user.get("locked_until")
         if locked_until and locked_until > now:
-            return None
-        
-        # Check password.  If invalid, increment failed_attempts and set lockout if threshold is reached.  If valid, reset both.
+            raise InvalidCredentialsError("Invalid credentials")
         if not verify_password(password, user["password_hash"]):
             failed = user.get("failed_attempts", 0) + 1
             update = {"failed_attempts": failed}
-            if failed >= LOCKOUT_THRESHOLD:
-                update["locked_until"] = now + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+            if failed >= settings.LOCKOUT_THRESHOLD:
+                update["locked_until"] = now + timedelta(minutes=settings.LOCKOUT_DURATION_MINUTES)
             await self.repo.update(user["id"], update)
-            return None
-        # Reject disabled accounts AFTER password verify so we don't leak
-        # account state via timing.  Caller returns generic "Invalid
-        # credentials" — no enumeration.
+            raise InvalidCredentialsError("Invalid credentials")
         if not user.get("is_active", False):
-            return None
+            raise InvalidCredentialsError("Invalid credentials")
         await self.repo.update(user["id"], {
             "last_login": now,
             "failed_attempts": 0,
@@ -73,26 +58,8 @@ class AuthController:
     async def register(self, name: str, email: str, password: str) -> int:
         existing = await self.repo.find_by_email(email)
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"User with email '{email}' already registered",
-            )
-        now = datetime.now(timezone.utc)
-        from app.repositories.employee_repository import EmployeeRepository
-
-        emp_repo = EmployeeRepository()
-        emp_id = await emp_repo.next_id()
-        emp_doc = {
-            "id": emp_id,
-            "name": name,
-            "email": str(email),
-            "role": "New Hire",
-            "department_id": 1,
-            "status": "active",
-            "createdAt": now,
-            "updatedAt": now,
-        }
-        await emp_repo.insert(emp_doc)
+            raise ValidationError(f"User with email '{email}' already registered")
+        emp_id = await self.employee_controller.create_pending(name, email)
         password_hash = hash_password(password)
         return await self.repo.insert({
             "employee_id": emp_id,
@@ -105,10 +72,11 @@ class AuthController:
     async def create_auth_user(self, employee_id: int, email: str, password: str, role: AuthRole) -> int:
         existing = await self.repo.find_by_email(email)
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Auth user with email '{email}' already exists",
-            )
+            raise ValidationError(f"Auth user with email '{email}' already exists")
+        try:
+            await self.employee_controller.get(employee_id)
+        except NotFoundError:
+            raise ValidationError(f"Employee with id {employee_id} not found")
         password_hash = hash_password(password)
         return await self.repo.insert({
             "employee_id": employee_id,
@@ -120,22 +88,25 @@ class AuthController:
         })
 
     async def activate_user(self, user_id: int) -> bool:
+        user = await self.repo.find_by_id(user_id)
+        if user is None:
+            raise NotFoundError("User not found")
         await self.repo.update(user_id, {"is_active": True})
         return True
 
     async def reject_user(self, user_id: int) -> bool:
         user = await self.repo.find_by_id(user_id)
         if user is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            raise NotFoundError("User not found")
         await self.repo.delete(user_id)
         return True
 
-    async def change_password(self, user_id: int, old_password: str, new_password: str) -> Optional[dict]:
+    async def change_password(self, user_id: int, old_password: str, new_password: str) -> dict:
         user = await self.repo.find_by_id(user_id)
         if user is None:
-            return None
+            raise InvalidCredentialsError("Current password is incorrect")
         if not verify_password(old_password, user["password_hash"]):
-            return None
+            raise InvalidCredentialsError("Current password is incorrect")
         new_hash = hash_password(new_password)
         await self.repo.update(user_id, {
             "password_hash": new_hash,
@@ -154,6 +125,13 @@ class AuthController:
     async def get_user(self, user_id: int) -> Optional[dict]:
         return await self.repo.find_by_id(user_id)
 
-    async def list_users(self) -> list[dict]:
+    async def update_role(self, user_id: int, new_role: AuthRole) -> bool:
+        user = await self.repo.find_by_id(user_id)
+        if user is None:
+            raise NotFoundError("User not found")
+        await self.repo.update(user_id, {"auth_role": new_role.value})
+        return True
+
+    async def list_users(self) -> list[AuthUserResponse]:
         users = await self.repo.find_all()
-        return [_sanitize_user(u) for u in users]
+        return [AuthUserResponse.from_doc(u) for u in users]
