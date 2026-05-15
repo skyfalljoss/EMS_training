@@ -50,10 +50,26 @@ class AuthController:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"User with email '{email}' already registered",
             )
+        now = datetime.now(timezone.utc)
+        from app.repositories.employee_repository import EmployeeRepository
+
+        emp_repo = EmployeeRepository()
+        emp_id = await emp_repo.next_id()
+        emp_doc = {
+            "id": emp_id,
+            "name": name,
+            "email": str(email),
+            "role": "New Hire",
+            "department_id": 1,
+            "status": "active",
+            "createdAt": now,
+            "updatedAt": now,
+        }
+        await emp_repo.insert(emp_doc)
         password_hash = hash_password(password)
         return await self.repo.insert({
-            "name": name,
-            "email": email,
+            "employee_id": emp_id,
+            "email": str(email),
             "password_hash": password_hash,
             "auth_role": AuthRole.EMPLOYEE.value,
             "is_active": False,
