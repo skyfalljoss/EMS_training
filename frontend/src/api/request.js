@@ -1,5 +1,5 @@
 const BASE = ''
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/password']
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register']
 
 function redirectToLogin() {
   localStorage.removeItem('access_token')
