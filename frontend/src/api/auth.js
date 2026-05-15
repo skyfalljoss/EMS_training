@@ -27,3 +27,19 @@ export function createAuthUser(employee_id, email, password, auth_role) {
     body: JSON.stringify({ employee_id, email, password, auth_role }),
   })
 }
+
+export function listAuthUsers() {
+  return request('/auth/users')
+}
+
+export function activateAuthUser(user_id) {
+  return request(`/auth/users/${user_id}/activate`, { method: 'PUT' })
+}
+
+export function rejectAuthUser(user_id) {
+  return request(`/auth/users/${user_id}`, { method: 'DELETE' })
+}
+
+export function getMe() {
+  return request('/auth/me')
+}
