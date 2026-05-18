@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
-import { createEmployee, updateEmployee } from '../services/employeeService'
-import { listDepartments } from '../services/departmentService'
+import { useCreateEmployee, useUpdateEmployee } from '../hooks/useEmployeesQuery'
+import { useDepartmentsList } from '../hooks/useDepartmentsQuery'
 import { EMPLOYEE_STATUSES, EMPLOYEE_STATUS_LABELS } from '../constants/employeeStatus'
-import type { DepartmentView } from '../types/department'
 import type { EmployeeStatus, EmployeeView } from '../types/employee'
 
 interface FormState {
@@ -23,21 +22,18 @@ interface FormState {
   national_id: string
 }
 
-function fromEmployee(e: EmployeeView, deptList: DepartmentView[]): FormState {
-  const deptId =
-    e.department_id ?? deptList.find(d => d.name === e.dept)?.id ?? ''
+function fromEmployee(e: EmployeeView): FormState {
   return {
     name: e.name,
     email: e.email,
     role: e.role,
-    department_id: String(deptId),
+    department_id: String(e.department_id ?? ''),
     position: e.position ?? '',
     status: e.status,
     phone: e.phone !== '—' ? e.phone : '',
     location: e.location !== '—' ? e.location : '',
     manager: e.manager !== '—' ? e.manager : '',
-    salary:
-      e.salary !== '—' ? String(e.salary).replace(/[$,]/g, '') : '',
+    salary: e.salary !== '—' ? String(e.salary).replace(/[$,]/g, '') : '',
     rating: e.rating !== '—' ? String(e.rating).replace('/5.0', '') : '',
     start_date: e.start !== '—' ? e.start : '',
     date_of_birth: e.date_of_birth !== '—' ? e.date_of_birth : '',
@@ -57,37 +53,25 @@ interface Props {
   open: boolean
   employee?: EmployeeView | null
   onClose: () => void
-  onSaved?: () => void
 }
 
-export default function EmployeeFormModal({ open, employee, onClose, onSaved }: Props) {
+export default function EmployeeFormModal({ open, employee, onClose }: Props) {
   const isEdit = !!employee
-  const [departments, setDepartments] = useState<DepartmentView[]>([])
+  const { data: departments = [] } = useDepartmentsList()
+  const createMutation = useCreateEmployee()
+  const updateMutation = useUpdateEmployee()
   const [form, setForm] = useState<FormState>(emptyForm())
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (!open) return
-    let active = true
-    listDepartments().then(data => {
-      if (!active) return
-      setDepartments(data)
-      if (employee) {
-        setForm(fromEmployee(employee, data))
-      }
-    })
-    return () => { active = false }
-  }, [open, employee])
-
-  function resetForm() {
-    setForm(employee && departments.length ? fromEmployee(employee, departments) : emptyForm())
+    if (employee) {
+      setForm(fromEmployee(employee))
+    } else {
+      setForm(emptyForm())
+    }
     setError('')
-    setSaving(false)
-  }
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
-  useEffect(resetForm, [open])
+  }, [open, employee])
 
   function setField<K extends keyof FormState>(field: K) {
     return (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -105,7 +89,6 @@ export default function EmployeeFormModal({ open, employee, onClose, onSaved }: 
       setError('Name, email, role, and department are required.')
       return
     }
-    setSaving(true)
     setError('')
     try {
       const payload: Record<string, unknown> = {
@@ -117,30 +100,25 @@ export default function EmployeeFormModal({ open, employee, onClose, onSaved }: 
         date_of_birth: form.date_of_birth || null,
       }
       delete payload.department
-      // Drop blank optional strings so the backend doesn't reject "" against
-      // min_length / phone-regex / EmailStr validators.
-      const OPTIONAL_STRINGS = [
-        'position', 'phone', 'location', 'manager', 'national_id',
-      ]
+      const OPTIONAL_STRINGS = ['position', 'phone', 'location', 'manager', 'national_id']
       for (const k of OPTIONAL_STRINGS) {
         if (payload[k] === '' || payload[k] == null) delete payload[k]
       }
 
       if (isEdit && employee) {
-        await updateEmployee(employee.id, payload)
+        await updateMutation.mutateAsync({ id: employee.id, data: payload })
       } else {
-        await createEmployee(payload)
+        await createMutation.mutateAsync(payload)
       }
-      onSaved?.()
       handleClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
-    } finally {
-      setSaving(false)
     }
   }
 
   if (!open) return null
+
+  const saving = createMutation.isPending || updateMutation.isPending
 
   return (
     <div className="modal-backdrop" onClick={handleClose}>
