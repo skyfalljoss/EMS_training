@@ -1,57 +1,36 @@
 import type { CSSProperties } from 'react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getDepartment, deleteDepartment } from '../services/departmentService'
-import { listEmployees } from '../services/employeeService'
+import { useDepartmentDetail, useDeleteDepartment } from '../hooks/useDepartmentsQuery'
+import { useEmployeesList } from '../hooks/useEmployeesQuery'
 import ConfirmModal from '../components/ConfirmModal'
 import DepartmentFormModal from '../components/DepartmentFormModal'
 import { usePermissions } from '../hooks/usePermissions'
 import { departmentStatusLabel } from '../constants/departmentStatus'
 import { employeeStatusLabel } from '../constants/employeeStatus'
-import type { DepartmentView } from '../types/department'
-import type { EmployeeView } from '../types/employee'
 
 export default function DepartmentProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { canUpdate, canDelete } = usePermissions()
-  const [department, setDepartment] = useState<DepartmentView | null | undefined>(undefined)
-  const [employees, setEmployees] = useState<EmployeeView[]>([])
   const [formOpen, setFormOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    if (!id) return
-    let active = true
-    getDepartment(id).then(data => {
-      if (active) setDepartment(data ?? null)
-    })
-    return () => { active = false }
-  }, [id])
-
-  useEffect(() => {
-    if (!id) return
-    let active = true
-    listEmployees({ department_id: id }).then(data => {
-      if (active) setEmployees(data)
-    })
-    return () => { active = false }
-  }, [id])
+  const { data: department, isLoading } = useDepartmentDetail(id!)
+  const { data: employees = [] } = useEmployeesList({ department_id: id })
+  const deleteMutation = useDeleteDepartment()
 
   async function handleDelete() {
     if (!id) return
-    setDeleting(true)
     try {
-      await deleteDepartment(id)
+      await deleteMutation.mutateAsync(id)
       navigate('/departments')
     } catch {
-      setDeleting(false)
       setConfirmDelete(false)
     }
   }
 
-  if (department === undefined) return null
+  if (isLoading) return null
 
   if (!department) {
     return (
@@ -149,7 +128,7 @@ export default function DepartmentProfile() {
         open={confirmDelete}
         title="Delete Department"
         confirmLabel="Delete"
-        loading={deleting}
+        loading={deleteMutation.isPending}
         onClose={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
       >
