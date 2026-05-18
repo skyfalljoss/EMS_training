@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
-import { createDepartment, updateDepartment } from '../services/departmentService'
+import { useCreateDepartment, useUpdateDepartment } from '../hooks/useDepartmentsQuery'
 import type {
   DepartmentPayload,
   DepartmentStatus,
@@ -35,15 +35,15 @@ interface Props {
   open: boolean
   department?: DepartmentView | null
   onClose: () => void
-  onSaved?: () => void
 }
 
-export default function DepartmentFormModal({ open, department, onClose, onSaved }: Props) {
+export default function DepartmentFormModal({ open, department, onClose }: Props) {
   const isEdit = !!department
+  const createMutation = useCreateDepartment()
+  const updateMutation = useUpdateDepartment()
   const [form, setForm] = useState<FormState>(
     isEdit && department ? fromDepartment(department) : emptyForm(),
   )
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   function setField<K extends keyof FormState>(field: K) {
@@ -57,7 +57,6 @@ export default function DepartmentFormModal({ open, department, onClose, onSaved
       setError('Name and code are required.')
       return
     }
-    setSaving(true)
     setError('')
     try {
       const payload: Partial<DepartmentPayload> = {
@@ -67,16 +66,13 @@ export default function DepartmentFormModal({ open, department, onClose, onSaved
         head: form.head || undefined,
       }
       if (isEdit && department) {
-        await updateDepartment(department.id, payload)
+        await updateMutation.mutateAsync({ id: department.id, data: payload })
       } else {
-        await createDepartment(payload)
+        await createMutation.mutateAsync(payload)
       }
-      onSaved?.()
       handleClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -86,6 +82,8 @@ export default function DepartmentFormModal({ open, department, onClose, onSaved
   }
 
   if (!open) return null
+
+  const saving = createMutation.isPending || updateMutation.isPending
 
   return (
     <div className="modal-backdrop" onClick={handleClose}>
