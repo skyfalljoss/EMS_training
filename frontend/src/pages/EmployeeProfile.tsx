@@ -1,12 +1,11 @@
 import type { CSSProperties } from 'react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getEmployee, deleteEmployee } from '../services/employeeService'
+import { useEmployeeDetail, useDeleteEmployee } from '../hooks/useEmployeesQuery'
 import ConfirmModal from '../components/ConfirmModal'
 import EmployeeFormModal from '../components/EmployeeFormModal'
 import { usePermissions } from '../hooks/usePermissions'
 import { employeeStatusLabel } from '../constants/employeeStatus'
-import type { EmployeeView } from '../types/employee'
 
 const tabs = ['personal', 'employment', 'performance', 'documents'] as const
 type Tab = (typeof tabs)[number]
@@ -16,33 +15,23 @@ export default function EmployeeProfile() {
   const navigate = useNavigate()
   const { canUpdate, canDelete } = usePermissions()
   const [activeTab, setActiveTab] = useState<Tab>('personal')
-  const [employee, setEmployee] = useState<EmployeeView | null | undefined>(undefined)
   const [formOpen, setFormOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    if (!id) return
-    let active = true
-    getEmployee(id).then(data => {
-      if (active) setEmployee(data ?? null)
-    })
-    return () => { active = false }
-  }, [id])
+  const { data: employee, isLoading } = useEmployeeDetail(id!)
+  const deleteMutation = useDeleteEmployee()
 
   async function handleDelete() {
     if (!id) return
-    setDeleting(true)
     try {
-      await deleteEmployee(id)
+      await deleteMutation.mutateAsync(id)
       navigate('/employees')
     } catch {
-      setDeleting(false)
       setConfirmDelete(false)
     }
   }
 
-  if (employee === undefined) return null
+  if (isLoading) return null
 
   if (!employee) {
     return (
@@ -162,7 +151,7 @@ export default function EmployeeProfile() {
         open={confirmDelete}
         title="Delete Employee"
         confirmLabel="Delete"
-        loading={deleting}
+        loading={deleteMutation.isPending}
         onClose={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
       >
