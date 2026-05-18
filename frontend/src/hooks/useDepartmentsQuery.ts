@@ -46,7 +46,20 @@ export function useDeleteDepartment() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number | string) => departmentService.deleteDepartment(id),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: [DEPARTMENTS_KEY, 'list'] })
+      const previous = qc.getQueryData([DEPARTMENTS_KEY, 'list', {}])
+      qc.setQueryData([DEPARTMENTS_KEY, 'list', {}], (old: unknown) =>
+        Array.isArray(old) ? old.filter((d: { id: number }) => d.id !== Number(id)) : [],
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        qc.setQueryData([DEPARTMENTS_KEY, 'list', {}], context.previous)
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: [DEPARTMENTS_KEY, 'list'] })
     },
   })

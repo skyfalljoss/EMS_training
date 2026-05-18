@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as employeeService from '../services/employeeService'
-import type { EmployeeFilters } from '../types/employee'
+import type { EmployeeFilters, EmployeeView } from '../types/employee'
 
 const EMPLOYEES_KEY = 'employees'
 
@@ -46,7 +46,20 @@ export function useDeleteEmployee() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number | string) => employeeService.deleteEmployee(id),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: [EMPLOYEES_KEY, 'list'] })
+      const previous = qc.getQueryData<EmployeeView[]>([EMPLOYEES_KEY, 'list', {}])
+      qc.setQueryData<EmployeeView[]>([EMPLOYEES_KEY, 'list', {}], (old) =>
+        old ? old.filter(e => e.id !== Number(id)) : [],
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        qc.setQueryData([EMPLOYEES_KEY, 'list', {}], context.previous)
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: [EMPLOYEES_KEY, 'list'] })
     },
   })
