@@ -155,12 +155,12 @@ class EmployeeResponse(EmployeeBase):
     id: int = Field(..., description="Auto-incremented employee id")
     created_at: Optional[datetime] = Field(
         None,
-        alias="createAt",
+        alias="createdAt",
         description="Creation timestamp (UTC)",
     )
     updated_at: Optional[datetime] = Field(
         None,
-        alias="updateAt",
+        alias="updatedAt",
         description="Last update timestamp (UTC)",
     )
 

@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { listEmployees } from '../services/employeeService'
+import { listAuthUsers } from '../api/auth'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Sidebar({ open, onClose }) {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [empCount, setEmpCount] = useState(null)
+  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -12,6 +17,22 @@ export default function Sidebar({ open, onClose }) {
     })
     return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    if (user?.role !== 'admin') return
+    let active = true
+    let timer
+    const load = () => {
+      listAuthUsers()
+        .then(data => {
+          if (active) setPendingCount((data || []).filter(u => !u.is_active).length)
+        })
+        .catch(() => {})
+    }
+    load()
+    timer = setInterval(load, 30000)
+    return () => { active = false; clearInterval(timer) }
+  }, [user])
   return (
     <nav className={`sidebar${open ? ' open' : ''}`} onClick={onClose}>
       <div className="logo" onClick={e => e.stopPropagation()}>
@@ -38,17 +59,33 @@ export default function Sidebar({ open, onClose }) {
           Leave
           <span className="badge">12</span>
         </NavLink></li>
-        <li><NavLink to="/payroll" className={({isActive}) => isActive ? 'active' : ''}>
-          <svg className="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2 8h16"/><circle cx="10" cy="12" r="2"/></svg>
-          Payroll
-        </NavLink></li>
+        {user?.role !== 'employee' && (
+          <li><NavLink to="/payroll" className={({isActive}) => isActive ? 'active' : ''}>
+            <svg className="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2 8h16"/><circle cx="10" cy="12" r="2"/></svg>
+            Payroll
+          </NavLink></li>
+        )}
+        {user?.role === 'admin' && (
+          <li><NavLink to="/admin/users" className={({isActive}) => isActive ? 'active' : ''}>
+            <svg className="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 11l-4 4"/><path d="M5 11l4 4"/><circle cx="17" cy="6" r="3"/><path d="M14 14l2-3 3 3"/></svg>
+            Users
+            {pendingCount > 0 && (
+              <span className="badge" style={{background:'var(--danger)',color:'#fff'}}>{pendingCount}</span>
+            )}
+          </NavLink></li>
+        )}
       </ul>
       <div className="sidebar-footer">
-        <div className="avatar">AC</div>
-        <div className="info">
-          <div className="name">Alex Chen</div>
-          <div className="role">HR Manager</div>
+        <div className="avatar">
+          {user?.email ? user.email[0].toUpperCase() : '?'}
         </div>
+        <div className="info">
+          <div className="name">{user?.email?.split('@')[0] || 'User'}</div>
+          <div className="role">{user?.role || '—'}</div>
+        </div>
+        <button className="logout-btn" onClick={() => { logout(); navigate('/login', { replace: true }) }}>
+          Logout
+        </button>
       </div>
     </nav>
   )

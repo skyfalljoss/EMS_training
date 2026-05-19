@@ -145,15 +145,15 @@ def test_employee_response_with_full_fields():
         updatedAt=now,
     )
     assert response.id == 1
-    assert response.createdAt == now
-    assert response.updatedAt == now
+    assert response.created_at == now
+    assert response.updated_at == now
 
 
 def test_employee_response_timestamps_are_optional():
     response = EmployeeResponse(**_valid_payload(), id=42)
     assert response.id == 42
-    assert response.createdAt is None
-    assert response.updatedAt is None
+    assert response.created_at is None
+    assert response.updated_at is None
 
 
 def test_employee_response_serializes_to_dict():
@@ -163,4 +163,4 @@ def test_employee_response_serializes_to_dict():
     assert dumped["id"] == 7
     assert dumped["name"] == "John Doe"
     assert dumped["status"] == "active"
-    assert dumped["createdAt"] == now
+    assert dumped["created_at"] == now

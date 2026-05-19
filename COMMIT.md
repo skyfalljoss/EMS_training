@@ -1,57 +1,48 @@
-# feat(backend): initialize EMS backend project structure
+# Commit Convention
 
-## Summary
+## Rule
 
-Bootstrap the Employee Management System (EMS) backend with FastAPI, MongoDB (Motor), and a health-check endpoint.
+Every meaningful change gets its own commit. One commit = one logical change. If a change includes a new test, that test commit comes **before** the implementation commit (TDD).
 
-## Changes
+## Format
 
-### Project Setup
-- Add `pyproject.toml` with build system config (`setuptools`) targeting Python ≥ 3.11
-- Add `requirements.txt` with runtime dependencies: `fastapi`, `motor`, `pydantic-settings`, `uvicorn`
-- Add `Makefile` with `install`, `run`, and `tests` targets
-- Add `pytest.ini` for test configuration
+```
+<type>(<scope>): <description>
+```
 
-### Application
-- `app/main.py` — create `FastAPI` application instance; wire startup/shutdown lifecycle hooks for MongoDB connection management
-- `app/core/config.py` — define `Settings` via `pydantic-settings`; read `MONGO_URL` and `DB_NAME` from `.env`
-- `app/db/mongodb.py` — implement async MongoDB client lifecycle (`connect_db`, `close_db`, `get_database`) using `motor`
-- `app/api/routes/health.py` — add `GET /health` endpoint that pings MongoDB and returns service status
+| Part | Rule |
+|------|------|
+| `type` | One of `feat`, `fix`, `test`, `refactor`, `docs`, `style`, `chore` |
+| `scope` | The module/area affected (e.g. `auth`, `employees`, `api`, `frontend`) |
+| `description` | Imperative, lowercase, no period — "add login endpoint" not "added login endpoint." |
 
-### Tests
-- `tests/test_health.py` — add smoke test for `GET /health` using `TestClient`; assert HTTP 200 response
+## TDD Workflow
 
-## TDD Workflow — Red → Green → Refactor
+Every feature follows Red → Green → Refactor as separate commits:
 
-When writing commits that involve tests, follow this cycle:
+| Step | Commit type | Pattern | Example |
+|------|-------------|---------|---------|
+| 🔴 Red | `test` | Write a failing test first | `test(auth): add login validation tests` |
+| 🟢 Green | `feat` | Write minimum code to pass | `feat(auth): add login endpoint with validation` |
+| 🔵 Refactor | `refactor` | Clean up, tests still pass | `refactor(auth): extract password hashing helper` |
 
-| Phase       | Commit Type | What to do                                                   | Example commit message                                         |
-|-------------|-------------|--------------------------------------------------------------|----------------------------------------------------------------|
-| 🔴 Red      | `test`      | Write a failing test that defines the expected behaviour     | `test(health): add failing health check test [RED]`            |
-| 🟢 Green    | `feat`/`fix`| Write the minimum code to make the test pass                 | `feat(health): implement GET /health endpoint [GREEN]`         |
-| 🔵 Refactor | `refactor`  | Clean up code without changing behaviour (tests still pass)  | `refactor(health): extract db ping into helper [REFACTOR]`     |
+The git log should show: test → feat → refactor in sequence for each feature.
 
-> Keep each phase as a **separate commit**. The `[RED]`, `[GREEN]`, `[REFACTOR]` suffix makes the TDD cycle **visible in git log** at a glance.
+## Examples from this repo
 
----
+```
+test: add auth system tests
+feat: add AuthController (login, register, password, lockout)
+test: add auth headers to existing tests
+feat: add login and change-password pages
+fix: password change now sends Authorization header
+docs: compact AGENTS.md with high-signal facts for agents
+```
 
-## Commit Types Reference
+## Rules
 
-| Type       | Description                          |
-|------------|--------------------------------------|
-| `feat`     | New features                         |
-| `fix`      | Bug fixes                            |
-| `docs`     | Documentation changes                |
-| `style`    | Formatting, no logic changes         |
-| `refactor` | Code restructuring                   |
-| `test`     | Testing improvements                 |
-| `chore`    | Maintenance tasks                    |
-
-## Type
-
-`feat` — new feature (initial project scaffolding)
-
-## Related
-
-- Stack: Python 3.11, FastAPI, Motor (async MongoDB), Pydantic Settings, Uvicorn
-- Database: MongoDB (`ems_db`)
+- **Commit early, commit often** — every working state gets committed
+- **Tests before code** — write the failing test first, then implement
+- **One concern per commit** — don't mix a `feat` and a `fix` in the same commit
+- **Messages are imperative** — "add" not "added", "fix" not "fixed"
+- **No skip hooks** — never use `--no-verify`

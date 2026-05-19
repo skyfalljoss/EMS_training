@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listEmployees } from '../services/employeeService'
 import EmployeeFormModal from '../components/EmployeeFormModal'
+import { usePermissions } from '../hooks/usePermissions'
 
 const statusLabel = {
   active: 'Active',
@@ -12,6 +13,7 @@ const statusLabel = {
 
 export default function Employees() {
   const navigate = useNavigate()
+  const { canCreate } = usePermissions()
   const [filter, setFilter] = useState('all')
   const [employees, setEmployees] = useState([])
   const [formOpen, setFormOpen] = useState(false)
@@ -28,20 +30,18 @@ export default function Employees() {
 
   return (
     <>
-      <div className="glass-card" style={{marginBottom:16,padding:'16px 20px'}}>
-        <div className="filter-row" style={{marginBottom:0}}>
-          {['all','active','remote','on-leave','terminated'].map(f => (
-            <span key={f} className={`filter-pill${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
-              {f === 'all' ? 'All' : f === 'on-leave' ? 'On Leave' : f.charAt(0).toUpperCase() + f.slice(1)}
-            </span>
-          ))}
-        </div>
-      </div>
-
       <div className="glass-card">
         <div className="card-header">
-          <h2>Employee Directory</h2>
-          <span className="action" onClick={() => setFormOpen(true)}>+ Add Employee</span>
+          <div className="filter-row" style={{marginBottom:0}}>
+            {['all','active','remote','on-leave','terminated'].map(f => (
+              <span key={f} className={`filter-pill${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
+                {f === 'all' ? 'All' : f === 'on-leave' ? 'On Leave' : f.charAt(0).toUpperCase() + f.slice(1)}
+              </span>
+            ))}
+          </div>
+          {canCreate && (
+            <span className="action" onClick={() => setFormOpen(true)}>+ Add Employee</span>
+          )}
         </div>
         <div className="table-wrap">
           <table>

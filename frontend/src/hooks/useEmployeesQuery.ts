@@ -1,0 +1,66 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import * as employeeService from '../services/employeeService'
+import type { EmployeeFilters, EmployeeView } from '../types/employee'
+
+const EMPLOYEES_KEY = 'employees'
+
+export function useEmployeesList(filters?: EmployeeFilters) {
+  return useQuery({
+    queryKey: [EMPLOYEES_KEY, 'list', filters ?? {}],
+    queryFn: () => employeeService.listEmployees(filters),
+  })
+}
+
+export function useEmployeeDetail(id: number | string) {
+  return useQuery({
+    queryKey: [EMPLOYEES_KEY, id],
+    queryFn: () => employeeService.getEmployee(id),
+    enabled: !!id,
+  })
+}
+
+export function useCreateEmployee() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: Parameters<typeof employeeService.createEmployee>[0]) =>
+      employeeService.createEmployee(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [EMPLOYEES_KEY, 'list'] })
+    },
+  })
+}
+
+export function useUpdateEmployee() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number | string; data: Parameters<typeof employeeService.updateEmployee>[1] }) =>
+      employeeService.updateEmployee(id, data),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: [EMPLOYEES_KEY, 'list'] })
+      qc.invalidateQueries({ queryKey: [EMPLOYEES_KEY, id] })
+    },
+  })
+}
+
+export function useDeleteEmployee() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number | string) => employeeService.deleteEmployee(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: [EMPLOYEES_KEY, 'list'] })
+      const previous = qc.getQueryData<EmployeeView[]>([EMPLOYEES_KEY, 'list', {}])
+      qc.setQueryData<EmployeeView[]>([EMPLOYEES_KEY, 'list', {}], (old) =>
+        old ? old.filter(e => e.id !== Number(id)) : [],
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        qc.setQueryData([EMPLOYEES_KEY, 'list', {}], context.previous)
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: [EMPLOYEES_KEY, 'list'] })
+    },
+  })
+}

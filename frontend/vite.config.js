@@ -24,6 +24,7 @@ export default defineConfig({
           if (req.headers.accept?.includes('text/html')) return '/index.html'
         },
       },
+      '/auth': 'http://localhost:8000',
       '/health': 'http://localhost:8000',
     },
   },

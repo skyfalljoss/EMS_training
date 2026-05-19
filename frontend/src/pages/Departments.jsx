@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { listDepartments, deleteDepartment } from '../services/departmentService'
 import ConfirmModal from '../components/ConfirmModal'
 import DepartmentFormModal from '../components/DepartmentFormModal'
+import { usePermissions } from '../hooks/usePermissions'
 
 const statusLabel = {
   active: 'Active',
@@ -12,6 +13,7 @@ const statusLabel = {
 
 export default function Departments() {
   const navigate = useNavigate()
+  const { canCreate, canUpdate, canDelete } = usePermissions()
   const [filter, setFilter] = useState('all')
   const [departments, setDepartments] = useState([])
   const [formOpen, setFormOpen] = useState(false)
@@ -66,7 +68,9 @@ export default function Departments() {
               </span>
             ))}
           </div>
-          <span className="action" onClick={openCreate}>+ Add Department</span>
+          {canCreate && (
+            <span className="action" onClick={openCreate}>+ Add Department</span>
+          )}
         </div>
       </div>
 
@@ -87,12 +91,16 @@ export default function Departments() {
                   </div>
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center'}} onClick={e => e.stopPropagation()}>
-                  <button className="icon-btn icon-btn-edit" onClick={() => openEdit(d)} title="Edit department">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  </button>
-                  <button className="icon-btn icon-btn-delete" onClick={() => setConfirmDelete(d)} title="Delete department">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-                  </button>
+                  {canUpdate && (
+                    <button className="icon-btn icon-btn-edit" onClick={() => openEdit(d)} title="Edit department">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button className="icon-btn icon-btn-delete" onClick={() => setConfirmDelete(d)} title="Delete department">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </button>
+                  )}
                 </div>
               </div>
               <div style={{marginTop:4}}>
