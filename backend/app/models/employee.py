@@ -145,12 +145,12 @@ class EmployeeResponse(EmployeeBase):
     Excludes sensitive fields (salary, national_id, rating).
     """
 
-    model_config = ConfigDict(
-        from_attributes=True,
-        str_strip_whitespace=True,
-        use_enum_values=True,
-        populate_by_name=True,
-    )
+    # model_config = ConfigDict(
+    #     from_attributes=True,
+    #     str_strip_whitespace=True,
+    #     use_enum_values=True,
+    #     populate_by_name=True,
+    # )
 
     id: int = Field(..., description="Auto-incremented employee id")
     created_at: Optional[datetime] = Field(

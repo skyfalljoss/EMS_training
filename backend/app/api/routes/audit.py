@@ -11,7 +11,12 @@ from app.dependencies.auth import (
 )
 from app.models.audit_log import AuditLogResponse
 
-router = APIRouter(prefix="/audit", tags=["audit"])
+# Router-level guard: every endpoint here requires a non-expired password.
+router = APIRouter(
+    prefix="/audit",
+    tags=["audit"],
+    dependencies=[Depends(require_password_not_expired)],
+)
 
 
 @router.get("/logs")
@@ -23,7 +28,6 @@ async def get_audit_logs(
     skip: int = Query(0, ge=0),
     controller: AuditController = Depends(get_audit_controller),
     current_user: dict = Depends(require_permissions(Permission.AUDIT_READ)),
-    _: dict = Depends(require_password_not_expired),
 ):
     logs = await controller.get_logs_for_user(
         current_user, action=action, resource_type=resource_type,

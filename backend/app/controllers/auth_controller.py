@@ -47,19 +47,34 @@ class AuthController:
         # Token holds identity only.  auth_role is NEVER read from the
         # token — `get_current_user` re-fetches it from the DB on every
         # request so that role revocation takes effect immediately.
+        # auth_role is returned outside the JWT for audit logging only.
         token_data = {
             "sub": str(user["id"]),
             "employee_id": user.get("employee_id"),
             "email": user["email"],
             "must_change_pwd": user.get("must_change_password", False),
         }
-        return {"access_token": create_access_token(data=token_data), "token_type": "bearer"}
+        return {
+            "access_token": create_access_token(data=token_data),
+            "token_type": "bearer",
+            "auth_role": user.get("auth_role"),
+        }
 
     async def register(self, name: str, email: str, password: str) -> int:
         existing = await self.repo.find_by_email(email)
         if existing:
             raise ValidationError(f"User with email '{email}' already registered")
-        emp_id = await self.employee_controller.create_pending(name, email)
+        try:
+            emp_id = await self.employee_controller.create_pending(name, email)
+        except ValidationError:
+            existing_emp = await self.employee_controller.repo.find_by_email(email)
+            if not existing_emp:
+                raise
+            auth_with_emp = await self.repo.find_by_employee_ids([existing_emp["id"]])
+            if auth_with_emp:
+                raise ValidationError(f"User with email '{email}' already registered")
+            await self.employee_controller.repo.delete(existing_emp["id"])
+            emp_id = await self.employee_controller.create_pending(name, email)
         password_hash = hash_password(password)
         return await self.repo.insert({
             "employee_id": emp_id,
@@ -69,7 +84,7 @@ class AuthController:
             "is_active": False,
         })
 
-    async def create_auth_user(self, employee_id: int, email: str, password: str, role: AuthRole) -> int:
+    async def create_auth_user(self, employee_id: int, email: str, password: str, role: AuthRole, must_change_password: bool = True) -> int:
         existing = await self.repo.find_by_email(email)
         if existing:
             raise ValidationError(f"Auth user with email '{email}' already exists")
@@ -84,7 +99,7 @@ class AuthController:
             "password_hash": password_hash,
             "auth_role": role.value,
             "is_active": True,
-            "must_change_password": True,
+            "must_change_password": must_change_password,
         })
 
     async def activate_user(self, user_id: int) -> bool:
@@ -120,7 +135,11 @@ class AuthController:
             "email": user["email"],
             "must_change_pwd": False,
         }
-        return {"access_token": create_access_token(data=token_data), "token_type": "bearer"}
+        return {
+            "access_token": create_access_token(data=token_data),
+            "token_type": "bearer",
+            "auth_role": user.get("auth_role"),
+        }
 
     async def get_user(self, user_id: int) -> Optional[dict]:
         return await self.repo.find_by_id(user_id)

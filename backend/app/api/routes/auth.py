@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 
+from app.auth.utils import decode_access_token
 from app.controllers.auth_controller import AuthController
 from app.dependencies.auth import (
     get_current_user,
@@ -33,10 +34,17 @@ async def me(current_user: dict = Depends(get_current_user)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
+    request: Request,
     body: LoginRequest,
     controller: AuthController = Depends(get_auth_controller),
 ):
-    return await controller.login(body.email, body.password)
+    result = await controller.login(body.email, body.password)
+    request.state.audit = {
+        "user_id": decode_access_token(result["access_token"]).get("sub"),
+        "user_email": body.email,
+        "user_role": result.get("auth_role"),
+    }
+    return result
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -101,10 +109,17 @@ async def update_user_role(
 
 @router.put("/password", response_model=TokenResponse)
 async def change_password(
+    request: Request,
     body: PasswordChangeRequest,
     controller: AuthController = Depends(get_auth_controller),
     current_user: dict = Depends(get_current_user),
 ):
-    return await controller.change_password(
+    result = await controller.change_password(
         current_user["id"], body.old_password, body.new_password
     )
+    request.state.audit = {
+        "user_id": str(current_user["id"]),
+        "user_email": current_user.get("email"),
+        "user_role": result.get("auth_role"),
+    }
+    return result

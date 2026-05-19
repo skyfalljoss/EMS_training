@@ -7,6 +7,8 @@ class AuditLogEntry(BaseModel):
     user_id: Optional[int] = None
     user_email: Optional[str] = None
     user_role: Optional[str] = None
+    employee_name: Optional[str] = None
+    department_name: Optional[str] = None
     action: str
     resource_type: str
     resource_id: Optional[str] = None
