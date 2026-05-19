@@ -1,3 +1,10 @@
+"""Auth/security helpers (canonical location).
+
+Password hashing (bcrypt via passlib) and JWT encode/decode (python-jose)
+live here.  `app.core.security` is a thin re-export shim kept for
+backward compatibility with older imports.
+"""
+
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt

@@ -23,7 +23,6 @@ class Permission(str, Enum):
     AUDIT_READ         = "audit:read"
     LEAVE_CREATE       = "leave:create"
     LEAVE_APPROVE      = "leave:approve"
-    PAYROLL_READ       = "payroll:read"
     DASHBOARD_VIEW     = "dashboard:view"
 
 

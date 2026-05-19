@@ -17,5 +17,8 @@ class Settings(BaseSettings):
     BCRYPT_WORK_FACTOR: int = 12
     CORS_ORIGINS: list[str] = ["*"]
 
+    LOCKOUT_THRESHOLD: int = 5
+    LOCKOUT_DURATION_MINUTES: int = 15
+
 
 settings = Settings()
