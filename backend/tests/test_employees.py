@@ -4,24 +4,6 @@ These tests use the FastAPI TestClient. They rely on the app's startup hook
 to seed the sample employees on first run.
 """
 
-import uuid
-
-import pytest
-from fastapi.testclient import TestClient
-
-from app.main import app
-
-
-def _unique_email(prefix: str = "user") -> str:
-    return f"{prefix}-{uuid.uuid4().hex[:8]}@test.com"
-
-
-@pytest.fixture()
-def api():
-    # Using context manager triggers FastAPI startup/shutdown events
-    with TestClient(app) as client:
-        yield client
-
 
 def test_root(api, auth_headers):
     response = api.get("/", headers=auth_headers)
@@ -49,10 +31,10 @@ def test_get_employee_not_found(api, auth_headers):
     assert response.status_code == 404
 
 
-def test_create_employee_success(api, auth_headers):
+def test_create_employee_success(api, auth_headers, unique_email):
     payload = {
         "name": "Alice Wonder",
-        "email": _unique_email("alice"),
+        "email": unique_email("alice"),
         "role": "QA",
         "department_id": 1,
     }
@@ -85,17 +67,17 @@ def test_create_employee_invalid_email(api, auth_headers):
     assert response.status_code == 422  # Pydantic validation
 
 
-def test_create_employee_empty_name(api, auth_headers):
-    payload = {"name": "", "email": _unique_email("empty"), "role": "R", "department_id": 1}
+def test_create_employee_empty_name(api, auth_headers, unique_email):
+    payload = {"name": "", "email": unique_email("empty"), "role": "R", "department_id": 1}
     response = api.post("/employees", json=payload, headers=auth_headers)
     assert response.status_code == 422
 
 
-def test_update_employee(api, auth_headers):
+def test_update_employee(api, auth_headers, unique_email):
     # Create one to update
     created = api.post(
         "/employees",
-        json={"name": "Update Me", "email": _unique_email("update"), "role": "R", "department_id": 1},
+        json={"name": "Update Me", "email": unique_email("update"), "role": "R", "department_id": 1},
         headers=auth_headers,
     ).json()
     new_id = created["id"]
@@ -111,10 +93,10 @@ def test_update_employee_not_found(api, auth_headers):
     assert response.status_code == 404
 
 
-def test_delete_employee(api, auth_headers):
+def test_delete_employee(api, auth_headers, unique_email):
     created = api.post(
         "/employees",
-        json={"name": "Delete Me", "email": _unique_email("delete"), "role": "R", "department_id": 1},
+        json={"name": "Delete Me", "email": unique_email("delete"), "role": "R", "department_id": 1},
         headers=auth_headers,
     ).json()
     new_id = created["id"]
@@ -144,10 +126,10 @@ def test_filter_by_role(api, auth_headers):
     assert all(e["role"] == "Engineer" for e in response.json())
 
 
-def test_create_employee_invalid_department_id(api, auth_headers):
+def test_create_employee_invalid_department_id(api, auth_headers, unique_email):
     payload = {
         "name": "Bad Dept",
-        "email": _unique_email("baddept"),
+        "email": unique_email("baddept"),
         "role": "Engineer",
         "department_id": 9999,
     }

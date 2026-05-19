@@ -1,19 +1,10 @@
 """Tests for auth endpoints (login, register, password change)."""
 
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-
 
 registered_user = {
     "email": "manager@ems.com",
     "password": "Manager@1234"
 }
-
-@pytest.fixture
-def api():
-    with TestClient(app) as client:
-        yield client
 
 
 def test_login_success_admin(api):

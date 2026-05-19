@@ -8,21 +8,9 @@ Seed reminder (from sample_employees + sample_auth_users):
   emp 5  -> dept 1
 """
 
-import asyncio
-
-import pytest
-from fastapi.testclient import TestClient
-from motor.motor_asyncio import AsyncIOMotorClient
-
 from app.auth.utils import create_access_token
-from app.core.settings import settings
-from app.main import app
 
-
-@pytest.fixture
-def api():
-    with TestClient(app) as client:
-        yield client
+from tests.conftest import set_user_active
 
 
 # ---------------------------------------------------------------------------
@@ -79,13 +67,12 @@ def test_manager_can_get_employee_in_other_dept(api, manager_headers):
     assert resp.status_code == 200
 
 
-def test_manager_can_create_in_any_dept(api, manager_headers):
-    import uuid
+def test_manager_can_create_in_any_dept(api, manager_headers, unique_email):
     resp = api.post(
         "/employees",
         json={
             "name": "Crossover",
-            "email": f"cross-{uuid.uuid4().hex[:8]}@test.com",
+            "email": unique_email("cross"),
             "role": "Eng",
             "department_id": 1,
         },
@@ -156,25 +143,7 @@ def test_audit_logs_admin_ok(api, auth_headers):
 
 def test_disabled_user_cannot_login(api):
     """Flipping is_active=False must cause login to return generic 401."""
-    async def _disable_then_restore():
-        client = AsyncIOMotorClient(settings.MONGO_URL)
-        db = client[settings.DB_NAME]
-        await db["auth_users"].update_one(
-            {"email": "employee@ems.com"},
-            {"$set": {"is_active": False}},
-        )
-        client.close()
-
-    async def _restore():
-        client = AsyncIOMotorClient(settings.MONGO_URL)
-        db = client[settings.DB_NAME]
-        await db["auth_users"].update_one(
-            {"email": "employee@ems.com"},
-            {"$set": {"is_active": True}},
-        )
-        client.close()
-
-    asyncio.run(_disable_then_restore())
+    set_user_active("employee@ems.com", False)
     try:
         resp = api.post("/auth/login", json={
             "email": "employee@ems.com",
@@ -184,4 +153,4 @@ def test_disabled_user_cannot_login(api):
         # Generic message — must not leak account state.
         assert resp.json()["detail"] == "Invalid credentials"
     finally:
-        asyncio.run(_restore())
+        set_user_active("employee@ems.com", True)

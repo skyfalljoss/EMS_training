@@ -1,4 +1,4 @@
-from app.db.mongodb import get_client
+from app.db.mongo_db import get_client
 import pytest   
 from unittest.mock import AsyncMock, MagicMock
 

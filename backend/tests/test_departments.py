@@ -4,17 +4,6 @@ These tests use the FastAPI TestClient. They rely on the app's startup hook
 to seed the sample departments on first run.
 """
 
-import pytest
-from fastapi.testclient import TestClient
-
-from app.main import app
-
-
-@pytest.fixture()
-def api():
-    with TestClient(app) as client:
-        yield client
-
 
 def _dept_payload(code_suffix: str = "DEV") -> dict:
     return {
