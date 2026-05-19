@@ -110,9 +110,9 @@ export default function DepartmentFormModal({ open, department, onClose }: Props
             </div>
             <div className="form-field">
               <label>Code <span className="required">*</span></label>
-              <input value={form.code} onChange={setField('code')} placeholder="e.g. IT" style={{ textTransform: 'uppercase' }} />
+              <input value={form.code} onChange={setField('code')} placeholder="e.g. IT" className="form-code-input" />
             </div>
-            <div className="form-field" style={{ gridColumn: 'span 2' }}>
+            <div className="form-field form-field-span-2">
               <label>Description</label>
               <textarea value={form.description} onChange={setField('description')} placeholder="Optional description" rows={3} />
             </div>

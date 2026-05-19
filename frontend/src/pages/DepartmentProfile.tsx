@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useDepartmentDetail, useDeleteDepartment } from '../hooks/useDepartmentsQuery'
@@ -36,7 +35,7 @@ export default function DepartmentProfile() {
     return (
       <div className="glass-card" style={{textAlign:'center',padding:40}}>
         <h2>Department not found</h2>
-        <button className="pa-btn" style={{marginTop:16}} onClick={() => navigate('/departments')}>← Back to Departments</button>
+        <button className="pa-btn mt-16" onClick={() => navigate('/departments')}>← Back to Departments</button>
       </div>
     )
   }
@@ -50,35 +49,35 @@ export default function DepartmentProfile() {
         Back to Departments
       </button>
 
-      <div className="glass-card" style={{marginTop:12}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+      <div className="glass-card mt-12">
+        <div className="flex-between">
           <div className="profile-header" style={{border:'none',padding:0,marginBottom:24}}>
             <div className="profile-avatar" style={{background:d.color}}>{d.icon}</div>
             <div className="profile-info">
               <h1>{d.name}</h1>
-              <div className="role "><span style={{marginRight:10}} >{d.code}</span><span className={`status-pill ${d.status}`}>{departmentStatusLabel(d.status)}</span></div>
+              <div className="role"><span className="mr-10">{d.code}</span><span className={`status-pill ${d.status}`}>{departmentStatusLabel(d.status)}</span></div>
               <div className="profile-meta">
                 {d.head && <span>Head: {d.head}</span>}
                 {d.description && <span>{d.description}</span>}
               </div>
             </div>
           </div>
-          <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
+          <div className="flex-gap-6" style={{flexShrink:0}}>
             {canUpdate && (
-              <button style={iconBtnStyle} onClick={() => setFormOpen(true)} title="Edit department">
+              <button className="icon-action-btn" onClick={() => setFormOpen(true)} title="Edit department">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
             )}
             {canDelete && (
-              <button style={{...iconBtnStyle,color:'var(--danger)'}} onClick={() => setConfirmDelete(true)} title="Delete department">
+              <button className="icon-action-btn icon-action-btn-danger" onClick={() => setConfirmDelete(true)} title="Delete department">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
               </button>
             )}
           </div>
         </div>
 
-        <div style={{marginBottom:24}}>
-          <h3 style={{fontSize:14,fontWeight:600,marginBottom:12}}>Department Details</h3>
+        <div className="mb-24">
+          <h3 className="subsection-title">Department Details</h3>
           <div className="info-grid">
             <div className="info-field"><label>Department ID</label><div className="value">DEPT-{String(d.id).padStart(3,'0')}</div></div>
             <div className="info-field"><label>Name</label><div className="value">{d.name}</div></div>
@@ -90,16 +89,16 @@ export default function DepartmentProfile() {
         </div>
 
         <div>
-          <h3 style={{fontSize:14,fontWeight:600,marginBottom:12}}>Employees ({employees.length})</h3>
+          <h3 className="subsection-title">Employees ({employees.length})</h3>
           {employees.length === 0 ? (
-            <p style={{fontSize:13,color:'var(--muted)',padding:12}}>No employees in this department.</p>
+            <p className="text-muted" style={{fontSize:13,padding:12}}>No employees in this department.</p>
           ) : (
             <div className="table-wrap">
               <table>
                 <thead><tr><th>Employee</th><th>Role</th><th>Status</th></tr></thead>
                 <tbody>
                   {employees.map(e => (
-                    <tr key={e.id} style={{cursor:'pointer'}} onClick={() => navigate(`/employees/${e.id}`)}>
+                    <tr key={e.id} className="cursor-pointer" onClick={() => navigate(`/employees/${e.id}`)}>
                       <td>
                         <div className="emp-cell">
                           <div className="emp-avatar" style={{background:e.color}}>{e.name.split(' ').map(n => n[0]).join('')}</div>
@@ -134,16 +133,11 @@ export default function DepartmentProfile() {
       >
         <p>Are you sure you want to delete <strong>{d.name}</strong>?</p>
         {employees.length > 0 && (
-          <p style={{color:'var(--danger)',marginTop:8}}>{employees.length} employee(s) must be reassigned first.</p>
+          <p className="text-danger mt-8">{employees.length} employee(s) must be reassigned first.</p>
         )}
       </ConfirmModal>
     </>
   )
 }
 
-const iconBtnStyle: CSSProperties = {
-  background:'none',border:'none',cursor:'pointer',
-  padding:4,borderRadius:'var(--radius-sm)',
-  color:'var(--muted)',display:'flex',alignItems:'center',
-  transition:'all .15s',
-}
+

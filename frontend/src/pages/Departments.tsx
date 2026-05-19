@@ -11,6 +11,7 @@ export default function Departments() {
   const navigate = useNavigate()
   const { canCreate, canUpdate, canDelete } = usePermissions()
   const [filter, setFilter] = useState<string>('all')
+  const [search, setSearch] = useState<string>('')
   const [formOpen, setFormOpen] = useState(false)
   const [editingDept, setEditingDept] = useState<DepartmentView | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<DepartmentView | null>(null)
@@ -19,6 +20,10 @@ export default function Departments() {
     filter !== 'all' ? { status: filter } : undefined,
   )
   const deleteMutation = useDeleteDepartment()
+
+  const displayedDepartments = departments.filter(d => 
+    d.name.toLowerCase().includes(search.toLowerCase())
+  )
 
   async function handleDelete(id: number) {
     try {
@@ -46,14 +51,18 @@ export default function Departments() {
 
   return (
     <>
-      <div className="glass-card" style={{marginBottom:16,padding:'16px 20px'}}>
-        <div className="card-header" style={{marginBottom:0,padding:0}}>
-          <div className="filter-row" style={{marginBottom:0}}>
+      <div className="glass-card filter-card">
+        <div className="card-header mb-0 p-0 header-flex">
+          <div className="filter-row mb-0">
             {['all','active','inactive','archived'].map(f => (
               <span key={f} className={`filter-pill${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
                 {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
               </span>
             ))}
+          </div>
+          <div className="search-box filter-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" placeholder="Search departments..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           {canCreate && (
             <span className="action" onClick={openCreate}>+ Add Department</span>
@@ -62,14 +71,14 @@ export default function Departments() {
       </div>
 
       <div className="dept-grid">
-        {departments.length === 0 ? (
-          <div className="glass-card" style={{gridColumn:'1/-1',textAlign:'center',padding:40}}>
-            <p style={{color:'var(--muted)'}}>No departments found</p>
+        {displayedDepartments.length === 0 ? (
+          <div className="glass-card empty-glass-card">
+            <p className="text-muted">No departments found</p>
           </div>
         ) : (
-          departments.map(d => (
-            <div key={d.id} className="dept-card glass-card" style={{cursor:'pointer'}} onClick={() => navigate(`/departments/${d.id}`)}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          displayedDepartments.map(d => (
+            <div key={d.id} className="dept-card glass-card cursor-pointer" onClick={() => navigate(`/departments/${d.id}`)}>
+              <div className="flex-between">
                 <div className="dept-header">
                   <div className="dept-icon" style={{background:d.color}}>{d.icon}</div>
                   <div>
@@ -77,7 +86,7 @@ export default function Departments() {
                     <div className="dept-manager">{d.head || 'No head'}</div>
                   </div>
                 </div>
-                <div style={{display:'flex',gap:8,alignItems:'center'}} onClick={e => e.stopPropagation()}>
+                <div className="flex-gap-8" onClick={e => e.stopPropagation()}>
                   {canUpdate && (
                     <button className="icon-btn icon-btn-edit" onClick={() => openEdit(d)} title="Edit department">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -90,8 +99,8 @@ export default function Departments() {
                   )}
                 </div>
               </div>
-              <div style={{marginTop:4}}>
-                <span className={`status-pill ${d.status}`} style={{fontSize:11}}>{departmentStatusLabel(d.status)}</span>
+              <div className="mt-4">
+                <span className={`status-pill ${d.status} status-pill-sm`}>{departmentStatusLabel(d.status)}</span>
               </div>
               <div className="dept-stats">
                 <div className="dept-stat"><div className="num">{d.headcount}</div><div className="lbl">Employees</div></div>

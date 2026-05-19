@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import * as departmentService from '../services/departmentService'
 import type { DepartmentFilters } from '../types/department'
 
@@ -62,5 +62,13 @@ export function useDeleteDepartment() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: [DEPARTMENTS_KEY, 'list'] })
     },
+  })
+}
+
+export function prefetchDepartmentsList(queryClient: QueryClient, filters?: DepartmentFilters) {
+  return queryClient.prefetchQuery({
+    queryKey: [DEPARTMENTS_KEY, 'list', filters ?? {}],
+    queryFn: () => departmentService.listDepartments(filters),
+    staleTime: 30_000,
   })
 }

@@ -4,10 +4,22 @@ import * as employeesApi from '../api/employees'
 
 const AUTH_USERS_KEY = 'auth-users'
 
-export function useAuthUsersList() {
+export function useAuthUsersList(options?: Record<string, any>) {
   return useQuery({
     queryKey: [AUTH_USERS_KEY, 'list'],
     queryFn: () => authApi.listAuthUsers(),
+    ...options,
+  })
+}
+
+export function useCreateAuthUser() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ employeeId, email, password, role }: { employeeId: number; email: string; password: string; role: string }) =>
+      authApi.createAuthUser(employeeId, email, password, role as Parameters<typeof authApi.updateAuthUserRole>[1]),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [AUTH_USERS_KEY, 'list'] })
+    },
   })
 }
 

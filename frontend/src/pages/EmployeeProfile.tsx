@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEmployeeDetail, useDeleteEmployee } from '../hooks/useEmployeesQuery'
@@ -37,7 +36,7 @@ export default function EmployeeProfile() {
     return (
       <div className="glass-card" style={{textAlign:'center',padding:40}}>
         <h2>Employee not found</h2>
-        <button className="pa-btn" style={{marginTop:16}} onClick={() => navigate('/employees')}>Back to Directory</button>
+        <button className="pa-btn mt-16" onClick={() => navigate('/employees')}>Back to Directory</button>
       </div>
     )
   }
@@ -51,8 +50,8 @@ export default function EmployeeProfile() {
         Back to Directory
       </button>
 
-      <div className="glass-card" style={{marginTop:12}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+      <div className="glass-card mt-12">
+        <div className="flex-between">
           <div className="profile-header" style={{border:'none',padding:0,marginBottom:24}}>
             <div className="profile-avatar" style={{background:e.color}}>{e.name.split(' ').map(n => n[0]).join('')}</div>
             <div className="profile-info">
@@ -63,14 +62,14 @@ export default function EmployeeProfile() {
               </div>
             </div>
           </div>
-          <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
+          <div className="flex-gap-6" style={{flexShrink:0}}>
             {canUpdate && (
-              <button style={iconBtnStyle} onClick={() => setFormOpen(true)} title="Edit employee">
+              <button className="icon-action-btn" onClick={() => setFormOpen(true)} title="Edit employee">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
             )}
             {canDelete && (
-              <button style={{...iconBtnStyle,color:'var(--danger)'}} onClick={() => setConfirmDelete(true)} title="Delete employee">
+              <button className="icon-action-btn icon-action-btn-danger" onClick={() => setConfirmDelete(true)} title="Delete employee">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
               </button>
             )}
@@ -86,9 +85,9 @@ export default function EmployeeProfile() {
         </div>
 
         <div className={`profile-tab-content${activeTab === 'personal' ? ' active' : ''}`}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:32}}>
+          <div className="grid-2-lg">
             <div>
-              <div className="section-title" style={{fontSize:13,marginBottom:16}}>Identity</div>
+              <div className="section-subtitle">Identity</div>
               <div className="info-grid">
                 <div className="info-field"><label>Full Name</label><div className="value">{e.name}</div></div>
                 <div className="info-field"><label>Date of Birth</label><div className="value">{e.date_of_birth}</div></div>
@@ -96,7 +95,7 @@ export default function EmployeeProfile() {
               </div>
             </div>
             <div>
-              <div className="section-title" style={{fontSize:13,marginBottom:16}}>Contact</div>
+              <div className="section-subtitle">Contact</div>
               <div className="info-grid">
                 <div className="info-field"><label>Phone</label><div className="value">{e.phone}</div></div>
                 <div className="info-field"><label>Email</label><div className="value">{e.email}</div></div>
@@ -129,11 +128,11 @@ export default function EmployeeProfile() {
         </div>
 
         <div className={`profile-tab-content${activeTab === 'documents' ? ' active' : ''}`}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+          <div className="grid-2">
             {['Employment_Contract_2025.pdf','Q1_2025_Performance_Review.pdf','NDA_Agreement_signed.pdf','Benefits_Enrollment_2025.pdf'].map(doc => (
-              <div key={doc} style={{padding:12,borderRadius:'var(--radius-sm)',background:'var(--primary-glass)',display:'flex',alignItems:'center',gap:10,cursor:'pointer'}}>
+              <div key={doc} className="doc-card">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
-                <span style={{fontSize:13}}>{doc}</span>
+                <span className="doc-name">{doc}</span>
               </div>
             ))}
           </div>
@@ -156,7 +155,7 @@ export default function EmployeeProfile() {
         onConfirm={handleDelete}
       >
         <p>Are you sure you want to delete <strong>{e.name}</strong>?</p>
-        <p style={{color:'var(--danger)',fontSize:13,marginTop:8}}>
+        <p className="text-danger" style={{fontSize:13,marginTop:8}}>
           This will also revoke their user login access. This action cannot be undone.
         </p>
       </ConfirmModal>
@@ -164,9 +163,4 @@ export default function EmployeeProfile() {
   )
 }
 
-const iconBtnStyle: CSSProperties = {
-  background:'none',border:'none',cursor:'pointer',
-  padding:4,borderRadius:'var(--radius-sm)',
-  color:'var(--muted)',display:'flex',alignItems:'center',
-  transition:'all .15s',
-}
+

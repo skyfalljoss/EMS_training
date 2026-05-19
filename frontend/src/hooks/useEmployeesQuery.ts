@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import * as employeeService from '../services/employeeService'
 import type { EmployeeFilters, EmployeeView } from '../types/employee'
 
@@ -62,5 +62,13 @@ export function useDeleteEmployee() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: [EMPLOYEES_KEY, 'list'] })
     },
+  })
+}
+
+export function prefetchEmployeesList(queryClient: QueryClient, filters?: EmployeeFilters) {
+  return queryClient.prefetchQuery({
+    queryKey: [EMPLOYEES_KEY, 'list', filters ?? {}],
+    queryFn: () => employeeService.listEmployees(filters),
+    staleTime: 30_000,
   })
 }

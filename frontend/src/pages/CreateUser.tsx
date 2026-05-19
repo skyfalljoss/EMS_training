@@ -111,7 +111,7 @@ export default function CreateUser() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="glass-card" style={{padding:24}}>
+      <div className="glass-card p-24">
         <p>Access denied. Admin only.</p>
       </div>
     )
@@ -119,14 +119,14 @@ export default function CreateUser() {
 
   return (
     <>
-      {error && <div className="glass-card" style={{padding:14,marginBottom:14,borderLeft:'4px solid var(--danger)',color:'var(--danger)'}}>{error}</div>}
-      {success && <div className="glass-card" style={{padding:14,marginBottom:14,borderLeft:'4px solid #10b981'}}>{success}</div>}
+      {error && <div className="glass-card alert-card error">{error}</div>}
+      {success && <div className="glass-card alert-card success">{success}</div>}
 
       {/* Pending Approvals */}
-      <div className="glass-card" style={{marginBottom:20}}>
+      <div className="glass-card mb-20">
         <div className="card-header">
-          <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <h3 style={{margin:0}}>Pending Approvals</h3>
+          <div className="flex-gap-10">
+            <h3 className="m-0">Pending Approvals</h3>
             <span className="badge" style={{background:pending.length ? 'var(--danger)' : 'var(--muted)',color:'#fff'}}>
               {pending.length}
             </span>
@@ -134,12 +134,12 @@ export default function CreateUser() {
         </div>
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Email</th><th>Employee</th><th>Role</th><th>Requested</th><th style={{width:200}}>Actions</th></tr></thead>
+            <thead><tr><th>Email</th><th>Employee</th><th>Role</th><th>Requested</th><th>Actions</th></tr></thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={5} style={{textAlign:'center',padding:24,color:'var(--muted)'}}>Loading…</td></tr>
+                <tr><td colSpan={5} className="no-data">Loading…</td></tr>
               ) : pending.length === 0 ? (
-                <tr><td colSpan={5} style={{textAlign:'center',padding:24,color:'var(--muted)'}}>No pending registration requests</td></tr>
+                <tr><td colSpan={5} className="no-data">No pending registration requests</td></tr>
               ) : (
                 pending.map(u => {
                   const emp = empById[u.employee_id]
@@ -150,20 +150,18 @@ export default function CreateUser() {
                       <td>{roleLabel[u.auth_role] ?? u.auth_role}</td>
                       <td>{fmtDate(u.created_at)}</td>
                       <td>
-                        <div style={{display:'flex',gap:8}}>
+                        <div className="flex-gap-8">
                           <button
-                            className="btn-primary"
+                            className="btn btn-primary btn-sm"
                             disabled={busyId === u.id}
                             onClick={() => handleApprove(u)}
-                            style={{padding:'6px 12px',fontSize:12}}
                           >
                             {busyId === u.id ? '…' : 'Approve'}
                           </button>
                           <button
-                            className="btn-secondary"
+                            className="btn btn-danger btn-sm"
                             disabled={busyId === u.id}
                             onClick={() => setConfirmReject(u)}
-                            style={{padding:'6px 12px',fontSize:12,color:'var(--danger)',borderColor:'var(--danger)'}}
                           >
                             Reject
                           </button>
@@ -181,16 +179,16 @@ export default function CreateUser() {
       {/* All Users */}
       <div className="glass-card">
         <div className="card-header">
-          <h3 style={{margin:0}}>All Users <span style={{color:'var(--muted)',fontWeight:400}}>({users.length})</span></h3>
+          <h3 className="m-0">All Users <span className="text-muted" style={{fontWeight:400}}>({users.length})</span></h3>
           <span className="action" onClick={() => setFormOpen(true)}>+ Create User</span>
         </div>
 
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Email</th><th>Employee</th><th>Role</th><th>Status</th><th>Last Login</th><th style={{width:140}}>Actions</th></tr></thead>
+            <thead><tr><th>Email</th><th>Employee</th><th>Role</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
             <tbody>
               {users.length === 0 ? (
-                <tr><td colSpan={6} style={{textAlign:'center',padding:24,color:'var(--muted)'}}>No users</td></tr>
+                <tr><td colSpan={6} className="no-data">No users</td></tr>
               ) : (
                 users.map(u => {
                   const emp = empById[u.employee_id]
@@ -200,38 +198,36 @@ export default function CreateUser() {
                       <td>{emp ? emp.name : `#${u.employee_id}`}</td>
                       <td>
                         {editingRole === u.id ? (
-                          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                          <div className="flex-gap-6">
                             <select
                               value={newRole}
                               onChange={e => setNewRole(e.target.value as Role)}
-                              style={{padding:'6px 10px',borderRadius:10,border:'1px solid var(--glass-border-left)',background:'var(--glass-highlight)',fontSize:12,fontWeight:600,color:'var(--fg)',outline:'none',cursor:'pointer',fontFamily:'var(--font-body)'}}
+                              className="btn-xs"
+                              style={{borderRadius:10,border:'1px solid var(--glass-border-left)',background:'var(--glass-highlight)',outline:'none',cursor:'pointer',fontFamily:'var(--font-body)'}}
                             >
                               <option value="employee">Employee</option>
                               <option value="manager">Manager</option>
                               <option value="admin">Admin</option>
                             </select>
                             <button
-                              className="btn btn-primary"
+                              className="btn btn-primary btn-xs"
                               disabled={updateRoleMutation.isPending}
                               onClick={() => handleSaveRole(u.id)}
-                              style={{padding:'6px 10px',fontSize:11,whiteSpace:'nowrap'}}
                             >
                               {updateRoleMutation.isPending ? '…' : 'Save'}
                             </button>
                             <button
+                              className="btn btn-danger btn-xxs"
                               disabled={updateRoleMutation.isPending}
                               onClick={() => setEditingRole(null)}
-                              className="btn btn-danger"
-                              style={{padding:'4px 8px',fontSize:13}}
                             >
                               ×
                             </button>
                           </div>
                         ) : (
                           <span
-                            className="action"
+                            className="action cursor-pointer"
                             onClick={() => startEditRole(u)}
-                            style={{cursor:'pointer'}}
                           >
                             {roleLabel[u.auth_role] ?? u.auth_role} ✎
                           </span>
@@ -246,14 +242,13 @@ export default function CreateUser() {
                       <td>
                         {!u.is_active ? (
                           <button
-                            className="btn-primary"
+                            className="btn btn-primary btn-sm"
                             disabled={busyId === u.id}
                             onClick={() => handleApprove(u)}
-                            style={{padding:'6px 12px',fontSize:12}}
                           >Approve</button>
                         ) : (
                           <button
-                            className="btn btn-danger"
+                            className="btn btn-danger btn-sm"
                             disabled={busyId === u.id}
                             onClick={() => setConfirmDeleteUser(u)}
                           >Delete</button>
@@ -318,7 +313,7 @@ export default function CreateUser() {
         <p>
           Delete user account for <strong>{confirmDeleteUser?.email}</strong>?
         </p>
-        <p style={{color:'var(--muted)',fontSize:13,marginTop:8}}>
+        <p className="text-muted" style={{fontSize:13,marginTop:8}}>
           The linked employee record will be preserved. Only login access will be revoked.
         </p>
       </ConfirmModal>

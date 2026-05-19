@@ -1,6 +1,7 @@
 import { lazy, useState, useEffect, Suspense } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
+import GuestRoute from './components/GuestRoute'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import TweaksPanel from './components/TweaksPanel'
@@ -15,15 +16,16 @@ const Employees = lazy(() => import('./pages/Employees'))
 const EmployeeProfile = lazy(() => import('./pages/EmployeeProfile'))
 const Departments = lazy(() => import('./pages/Departments'))
 const DepartmentProfile = lazy(() => import('./pages/DepartmentProfile'))
-const Leave = lazy(() => import('./pages/Leave'))
 
 type Theme = 'light' | 'dark'
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [searchValue, setSearchValue] = useState('')
   const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem('omnibank-theme') as Theme | null) ?? 'light'
+    const stored = localStorage.getItem('omnibank-theme') as Theme | null
+    if (stored) return stored
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    return prefersDark ? 'dark' : 'light'
   })
   const location = useLocation()
   const authPaths = ['/login', '/register', '/change-password']
@@ -54,16 +56,14 @@ export default function App() {
       <div className={isAuthPage ? "auth-layout" : "main"}>
         {!isAuthPage && <TopBar
           onMenuToggle={() => setSidebarOpen(prev => !prev)}
-          searchValue={searchValue}
-          onSearchChange={e => setSearchValue(e.target.value)}
           theme={theme}
           onToggleTheme={toggleTheme}
         />}
         <div className="screens">
           <Suspense fallback={null}>
             <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+              <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
               <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute><CreateUser /></ProtectedRoute>} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -72,8 +72,8 @@ export default function App() {
               <Route path="/employees/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
               <Route path="/departments" element={<ProtectedRoute><Departments /></ProtectedRoute>} />
               <Route path="/departments/:id" element={<ProtectedRoute><DepartmentProfile /></ProtectedRoute>} />
-              <Route path="/leave" element={<ProtectedRoute><Leave /></ProtectedRoute>} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              {/* <Route path="/leave" element={<ProtectedRoute><Leave /></ProtectedRoute>} />
+              <Route path="*" element={<Navigate to="/login" replace />} /> */}
             </Routes>
           </Suspense>
         </div>
