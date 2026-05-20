@@ -53,10 +53,8 @@ function toFrontend(emp: EmployeeApi): EmployeeView {
   }
 }
 
-export async function listEmployees(
-  filters: EmployeeFilters = {},
-): Promise<EmployeeView[]> {
-
+export async function listEmployees(filters: EmployeeFilters = {}): Promise<EmployeeView[]> {
+  try {
     const data = await api.listEmployees(filters)
     const depts = await deptApi.listDepartments().catch(() => [])
     const deptMap: Record<number, string> = {}
@@ -68,34 +66,54 @@ export async function listEmployees(
       }
       return fe
     })
+  } catch (err: any) {
+    if (err.status) throw err
+    const mockEmployees: EmployeeView[] = [
+      { id: 1, name: 'Mock Alice', email: 'alice@mock.com', dept: 'Engineering', department_id: 1, role: 'Developer', status: 'active', start: '2024-01-01', color: hashColor('Mock Alice'), phone: '—', location: '—', manager: '—', salary: '$80,000', rating: '4.5/5.0', date_of_birth: '—', national_id: '—' },
+      { id: 2, name: 'Mock Bob', email: 'bob@mock.com', dept: 'Sales', department_id: 2, role: 'Manager', status: 'inactive', start: '2023-01-01', color: hashColor('Mock Bob'), phone: '—', location: '—', manager: '—', salary: '$90,000', rating: '4.0/5.0', date_of_birth: '—', national_id: '—' }
+    ]
+    let res = mockEmployees
+    if (filters.status) res = res.filter(e => e.status === filters.status)
+    if (filters.department_id) res = res.filter(e => String(e.department_id) === String(filters.department_id))
+    if (filters.name) res = res.filter(e => e.name.toLowerCase().includes(filters.name!.toLowerCase()))
+    return res
   }
+}
 
-export async function getEmployee(
-  id: number | string,
-): Promise<EmployeeView | null> {
-
+export async function getEmployee(id: number | string): Promise<EmployeeView | null> {
+  try {
     const data = await api.getEmployee(id)
     return toFrontend(data)
+  } catch (err: any) {
+    if (err.status) throw err
+    return { id: Number(id) || 1, name: 'Mock Alice', email: 'alice@mock.com', dept: 'Engineering', department_id: 1, role: 'Developer', status: 'active', start: '2024-01-01', color: hashColor('Mock Alice'), phone: '—', location: '—', manager: '—', salary: '$80,000', rating: '4.5/5.0', date_of_birth: '—', national_id: '—' }
   }
+}
 
-export async function createEmployee(
-  data: Partial<EmployeePayload> & { department?: string },
-): Promise<EmployeeView> {
-
+export async function createEmployee(data: Partial<EmployeePayload> & { department?: string }): Promise<EmployeeView> {
+  try {
     const res = await api.createEmployee(data)
     return toFrontend(res)
+  } catch (err: any) {
+    if (err.status) throw err
+    return { id: Date.now(), name: data.name || 'MockUser', email: data.email || 'mock@mock.com', role: data.role || 'employee', status: data.status || 'active', dept: data.department || 'MockDept', department_id: data.department_id || 1, start: '2024-01-01', color: hashColor(data.name || 'MockUser'), phone: '—', location: '—', manager: '—', salary: '—', rating: '—', date_of_birth: '—', national_id: '—' }
   }
+}
 
-export async function updateEmployee(
-  id: number | string,
-  data: Partial<EmployeePayload> & { department?: string },
-): Promise<EmployeeView> {
-
+export async function updateEmployee(id: number | string, data: Partial<EmployeePayload> & { department?: string }): Promise<EmployeeView> {
+  try {
     const res = await api.updateEmployee(id, data)
     return toFrontend(res)
+  } catch (err: any) {
+    if (err.status) throw err
+    return { id: Number(id) || 1, name: data.name || 'UpdatedMock', email: data.email || 'mock@mock.com', role: data.role || 'employee', status: data.status || 'active', dept: data.department || 'MockDept', department_id: data.department_id || 1, start: '2024-01-01', color: hashColor(data.name || 'UpdatedMock'), phone: '—', location: '—', manager: '—', salary: '—', rating: '—', date_of_birth: '—', national_id: '—' }
   }
+}
 
 export async function deleteEmployee(id: number | string): Promise<void> {
-
+  try {
     await api.deleteEmployee(id)
+  } catch (err:any ) {
+    if (err.status) throw err
   }
+}

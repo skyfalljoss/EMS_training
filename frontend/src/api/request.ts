@@ -1,10 +1,13 @@
 import axios, { type AxiosRequestConfig } from 'axios'
+import { VITE_API_URL } from '../config'
 import { ApiError } from '../types/api'
 
 const AUTH_ENDPOINTS: readonly string[] = ['/auth/login', '/auth/register']
 
 const instance = axios.create({
-  baseURL: '',
+  // In production (AWS), we MUST use the absolute API URL (ALB).
+  // In development, we use '' so requests go through the vite.config.ts proxy, bypassing CORS.
+  baseURL: import.meta.env.PROD ? VITE_API_URL : '',
   headers: { 'Content-Type': 'application/json' },
 })
 

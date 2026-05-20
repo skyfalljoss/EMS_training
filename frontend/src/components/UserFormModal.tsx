@@ -34,7 +34,7 @@ export default function UserFormModal({ open, employees, onClose, onSaved }: Pro
       setValidationError('')
       reset()
     }
-  }, [open])
+  }, [open, reset])
 
   function setField<K extends keyof FormState>(field: K) {
     return (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>

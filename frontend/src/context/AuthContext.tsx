@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const isAuthenticated = !!token
-  const mustChangePassword = user?.must_change_pwd === true
+  const mustChangePassword = user?.must_change_password === true
 
   const value: AuthContextValue = {
     user,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEmployeesList } from '../hooks/useEmployeesQuery'
 import { useDepartmentsList } from '../hooks/useDepartmentsQuery'
@@ -29,10 +29,6 @@ export default function Employees() {
     )
   }, [employees, deptFilter, search])
 
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [filter, deptFilter, search])
-
   const totalPages = Math.max(1, Math.ceil(displayedEmployees.length / pageSize))
   const paginatedEmployees = displayedEmployees.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
@@ -45,7 +41,14 @@ export default function Employees() {
         <div className="card-header">
           <div className="filter-row mb-0">
             {['all','active','inactive','on-leave','terminated'].map(f => (
-              <span key={f} className={`filter-pill${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
+              <span 
+                key={f} 
+                className={`filter-pill${filter === f ? ' active' : ''}`} 
+                onClick={() => {
+                  setFilter(f)
+                  setCurrentPage(1)
+                }}
+              >
                 {f === 'all' ? 'All' : f === 'on-leave' ? 'On Leave' : f.charAt(0).toUpperCase() + f.slice(1)}
               </span>
             ))}
@@ -53,7 +56,10 @@ export default function Employees() {
           <div className="table-search-bar">
             <select 
               value={deptFilter} 
-              onChange={e => setDeptFilter(e.target.value)}
+              onChange={e => {
+                setDeptFilter(e.target.value)
+                setCurrentPage(1)
+              }}
               className="table-search-select"
             >
               <option value="all">All Departments</option>
@@ -61,7 +67,15 @@ export default function Employees() {
             </select>
             <div className="search-box filter-search" style={{ margin: 0 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input type="text" placeholder="Search employees..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input 
+                type="text" 
+                placeholder="Search employees..." 
+                value={search} 
+                onChange={e => {
+                  setSearch(e.target.value)
+                  setCurrentPage(1)
+                }} 
+              />
             </div>
           </div>
           {canCreate && (

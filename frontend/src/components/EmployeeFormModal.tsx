@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useCreateEmployee, useUpdateEmployee } from '../hooks/useEmployeesQuery'
 import { useDepartmentsList } from '../hooks/useDepartmentsQuery'
@@ -63,15 +63,15 @@ export default function EmployeeFormModal({ open, employee, onClose }: Props) {
   const [form, setForm] = useState<FormState>(emptyForm())
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!open) return
-    if (employee) {
-      setForm(fromEmployee(employee))
-    } else {
-      setForm(emptyForm())
-    }
+  const [prevEmployee, setPrevEmployee] = useState<EmployeeView | null | undefined>(employee)
+  const [prevOpen, setPrevOpen] = useState(open)
+
+  if (employee !== prevEmployee || open !== prevOpen) {
+    setPrevEmployee(employee)
+    setPrevOpen(open)
+    setForm(employee ? fromEmployee(employee) : emptyForm())
     setError('')
-  }, [open, employee])
+  }
 
   function setField<K extends keyof FormState>(field: K) {
     return (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>

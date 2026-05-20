@@ -4,7 +4,7 @@ export interface JwtPayload {
   sub: string
   exp: number
   iat?: number
-  must_change_pwd?: boolean
+  must_change_password?: boolean
   [key: string]: unknown
 }
 
@@ -16,7 +16,7 @@ export interface AuthUser {
   role?: Role
   employee_id?: number
   is_active?: boolean
-  must_change_pwd?: boolean
+  must_change_password?: boolean
   last_login?: string | null
   created_at?: string | null
   [key: string]: unknown
@@ -40,7 +40,7 @@ export interface AuthUserAdmin {
   employee_id: number
   auth_role: Role
   is_active: boolean
-  must_change_pwd?: boolean
+  must_change_password?: boolean
   last_login?: string | null
   created_at?: string | null
 }

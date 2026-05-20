@@ -9,3 +9,9 @@ __pycache__/
 .vscode/
 node_modules/
 dist/
+.opencode/
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+*.terraform.lock.hcl

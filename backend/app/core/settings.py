@@ -17,6 +17,16 @@ class Settings(BaseSettings):
     BCRYPT_WORK_FACTOR: int = 12
     CORS_ORIGINS: list[str] = ["*"]
 
+    @property
+    def cors_origins_list(self) -> list[str]:
+        if isinstance(self.CORS_ORIGINS, str):
+            import json
+            try:
+                return json.loads(self.CORS_ORIGINS)
+            except:
+                return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        return self.CORS_ORIGINS
+
     LOCKOUT_THRESHOLD: int = 5
     LOCKOUT_DURATION_MINUTES: int = 15
 
