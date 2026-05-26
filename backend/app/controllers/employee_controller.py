@@ -79,6 +79,11 @@ class EmployeeController:
         department_id: Optional[int] = None,
         role: Optional[str] = None,
         name: Optional[str] = None,
+        status: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 20,
+        sort_by: str = "id",
+        sort_order: str = "asc",
         current_user: Optional[dict] = None,
     ) -> list[EmployeeResponse]:
         # All roles can see all employees; client-supplied filters apply.
@@ -90,8 +95,12 @@ class EmployeeController:
             query["role"] = role
         if name:
             query["name"] = {"$regex": name, "$options": "i"}
+        if status:
+            query["status"] = status.replace("-", "_")
 
-        docs = await self.repo.find_all(query)
+        sort_dir = 1 if sort_order == "asc" else -1
+        sort = [(sort_by, sort_dir)]
+        docs = await self.repo.find_all(query, skip, limit, sort)
         return [EmployeeResponse(**d) for d in docs]
 
     async def get(

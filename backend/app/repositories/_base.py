@@ -9,14 +9,9 @@ class BaseRepository:
     COLLECTION: str = ""
     COUNTER_ID: str = ""
 
-    def __init__(self):
-        self._db = None
-
     @property
     def db(self):
-        if self._db is None:
-            self._db = get_database()
-        return self._db
+        return get_database()
 
     async def next_id(self) -> int:
         result = await self.db[COUNTERS].find_one_and_update(

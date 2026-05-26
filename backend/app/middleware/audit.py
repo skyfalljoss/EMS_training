@@ -1,20 +1,25 @@
 """Audit middleware — logs all mutating requests to audit_logs collection."""
 
+from typing import Optional
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.auth.utils import decode_access_token
 from app.repositories.audit_repository import AuditRepository
-from app.repositories.employee_repository import EmployeeRepository
-from app.repositories.department_repository import DepartmentRepository
 
 SKIP_PATHS = {"/", "/health"}
 SKIP_PREFIXES = {"/docs", "/redoc", "/openapi.json"}
 
 
 class AuditMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app):
+    def __init__(
+        self,
+        app,
+        audit_repo: Optional[AuditRepository] = None,
+    ):
         super().__init__(app)
+        self._audit_repo = audit_repo
 
     async def dispatch(self, request: Request, call_next):
         if request.method in ("GET", "HEAD", "OPTIONS"):
@@ -50,19 +55,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
                     user_email = payload.get("email")
                     user_role = payload.get("role")
 
-        employee_name = None
-        department_name = None
-        if user_email:
-            emp_repo = EmployeeRepository()
-            emp = await emp_repo.find_by_email(user_email)
-            if emp:
-                employee_name = emp.get("name")
-                dept_id = emp.get("department_id")
-                if dept_id:
-                    dept_repo = DepartmentRepository()
-                    dept = await dept_repo.find_by_id(dept_id)
-                    department_name = dept.get("name") if dept else None
-
         path = request.url.path
         method = request.method
         resource_type, resource_id = self._parse_resource(path)
@@ -73,8 +65,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
             "user_id": user_id,
             "user_email": user_email,
             "user_role": user_role,
-            "employee_name": employee_name,
-            "department_name": department_name,
             "action": action,
             "resource_type": resource_type,
             "resource_id": resource_id,
@@ -84,7 +74,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
             "method": method,
             "path": path,
         }
-        repo = AuditRepository()
+        repo = self._audit_repo or AuditRepository()
         await repo.insert(entry)
 
     @staticmethod

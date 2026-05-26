@@ -34,7 +34,7 @@ class AuthUserCreate(BaseModel):
 
 class AuthUserResponse(BaseModel):
     id: int
-    employee_id: int
+    employee_id: Optional[int] = None
     email: str
     auth_role: AuthRole
     is_active: bool

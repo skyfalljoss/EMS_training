@@ -7,14 +7,13 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 
-LOGIN_RATE_LIMIT = 5
-REGISTER_RATE_LIMIT = 3
-WINDOW_SECONDS = 60
+from app.core.settings import settings
 
 RATE_LIMIT_CONFIG: dict[str, int] = {
-    "/auth/login": LOGIN_RATE_LIMIT,
-    "/auth/register": REGISTER_RATE_LIMIT,
+    "/auth/login": settings.LOGIN_RATE_LIMIT,
+    "/auth/register": settings.REGISTER_RATE_LIMIT,
 }
+WINDOW_SECONDS: int = settings.RATE_LIMIT_WINDOW_SECONDS
 
 _requests: dict[str, list[float]] = defaultdict(list)
 

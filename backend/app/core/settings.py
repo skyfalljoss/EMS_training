@@ -15,6 +15,13 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     BCRYPT_WORK_FACTOR: int = 12
+    LOCKOUT_THRESHOLD: int = 5
+    LOCKOUT_DURATION_MINUTES: int = 15
+
+    LOGIN_RATE_LIMIT: int = 5
+    REGISTER_RATE_LIMIT: int = 3
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+
     CORS_ORIGINS: list[str] = ["*"]
 
     @property
@@ -27,8 +34,7 @@ class Settings(BaseSettings):
                 return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
         return self.CORS_ORIGINS
 
-    LOCKOUT_THRESHOLD: int = 5
-    LOCKOUT_DURATION_MINUTES: int = 15
+    
 
 
 settings = Settings()

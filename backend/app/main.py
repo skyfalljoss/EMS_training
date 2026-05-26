@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+
 from app.api.routes.departments import router as departments_router
 from app.api.routes.employees import router as employees_router
 from app.api.routes.health import router as health_router
@@ -12,6 +13,7 @@ from app.api.routes.audit import router as audit_router
 from app.api.exception_handlers import register_exception_handlers
 from app.api.routes.auth import router as auth_router, admin_router as auth_admin_router
 from app.core.settings import settings
+from app.dependencies.repositories import get_audit_repository
 from app.middleware.audit import AuditMiddleware
 from app.middleware.ratelimit import RateLimitMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
@@ -39,7 +41,10 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.add_middleware(SecurityHeadersMiddleware)
-    app.add_middleware(AuditMiddleware)
+    app.add_middleware(
+        AuditMiddleware,
+        audit_repo=get_audit_repository(),
+    )
     app.add_middleware(RateLimitMiddleware)
     app.state.settings = settings
 
@@ -60,3 +65,7 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+from mangum import Mangum
+handler = Mangum(app)

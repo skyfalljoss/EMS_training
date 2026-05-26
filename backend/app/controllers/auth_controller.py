@@ -64,20 +64,9 @@ class AuthController:
         existing = await self.repo.find_by_email(email)
         if existing:
             raise ValidationError(f"User with email '{email}' already registered")
-        try:
-            emp_id = await self.employee_controller.create_pending(name, email)
-        except ValidationError:
-            existing_emp = await self.employee_controller.repo.find_by_email(email)
-            if not existing_emp:
-                raise
-            auth_with_emp = await self.repo.find_by_employee_ids([existing_emp["id"]])
-            if auth_with_emp:
-                raise ValidationError(f"User with email '{email}' already registered")
-            await self.employee_controller.repo.delete(existing_emp["id"])
-            emp_id = await self.employee_controller.create_pending(name, email)
         password_hash = hash_password(password)
         return await self.repo.insert({
-            "employee_id": emp_id,
+            "employee_id": None,
             "email": str(email),
             "password_hash": password_hash,
             "auth_role": AuthRole.EMPLOYEE.value,

@@ -36,16 +36,21 @@ async def create_employee(
 @router.get(
     "",
     response_model=list[EmployeeResponse],
-    summary="List employees with optional filters",
+    summary="List employees with optional filters and pagination",
 )
 async def list_employees(
     department_id: Optional[int] = Query(None, description="Filter by department id"),
     role: Optional[str] = Query(None, description="Filter by role"),
     name: Optional[str] = Query(None, description="Case-insensitive name search"),
+    status: Optional[str] = Query(None, description="Filter by employee status (active, inactive, on-leave, terminated)"),
+    skip: int = Query(0, ge=0, le=10000, description="Number of records to skip"),
+    limit: int = Query(20, ge=1, le=100, description="Max records per page"),
+    sort_by: str = Query("id", description="Field to sort by"),
+    sort_order: str = Query("asc", pattern=r"^(asc|desc)$", description="Sort direction"),
     controller: EmployeeController = Depends(get_employee_controller),
     current_user: dict = Depends(require_permissions(Permission.EMPLOYEE_READ)),
 ):
-    return await controller.list(department_id, role, name, current_user)
+    return await controller.list(department_id, role, name, status, skip, limit, sort_by, sort_order, current_user)
 
 
 @router.get(
