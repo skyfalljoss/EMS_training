@@ -23,11 +23,10 @@ src/
   services/     Business logic layer with mock fallback (API-first, mock on network error)
   hooks/        React Query hooks (useEmployeesQuery, usePayrollQuery, useAuditQuery, etc.)
   context/      AuthContext — token storage, login/logout/register/changePassword
-  pages/        One per route: Dashboard, Login, Employees, Departments, Payroll, Leave, etc.
+  pages/        One per route: Dashboard, Login, Employees, Departments, etc.
   components/   Sidebar, TopBar, ProtectedRoute, modals, forms
-  types/        TypeScript types (employee, department, leave, payroll, audit, auth, api)
+  types/        TypeScript types (employee, department, audit, auth, api)
   constants/    Status labels (employeeStatus, departmentStatus)
-  data/         Mock seed data (employees, departments, leaves, payroll)
   tests/        Vitest test definitions (*.test.ts, *.test.tsx, setupTests.ts)
   styles/       design.css — glassmorphism design system, light/dark theme
   config.ts     VITE_API_URL constant
