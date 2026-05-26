@@ -1,0 +1,6 @@
+student_name = "student-phong-nguyen"
+project_name = "ems"
+aws-region= "us-east-1"
+cohort = "fullstack-aws"
+jwt_secret_key = "jwt-secret-key"
+ec2_key_name = "student-phong-nguyen-ems-key"
