@@ -1,5 +1,6 @@
 import * as api from '../api/departments'
 import * as empApi from '../api/employees'
+import { isApiError } from '../types/api'
 import type {
   DepartmentApi,
   DepartmentFilters,
@@ -64,8 +65,8 @@ export async function listDepartments(filters: DepartmentFilters = {}): Promise<
       _fetchEmployeeCounts(),
     ])
     return data.map(d => ({ ...toFrontend(d), headcount: counts[d.id] ?? 0 }))
-  } catch (err: any) {
-    if (err.status) throw err
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
     const mockDepts: DepartmentView[] = [
       { id: 1, name: 'Engineering', code: 'ENG', description: 'Engineering Dept', head: 'Alice', status: 'active', icon: '💻', color: hashColor('Engineering'), headcount: 10, budget: '$1M', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
       { id: 2, name: 'Sales', code: 'SAL', description: 'Sales Dept', head: 'Bob', status: 'inactive', icon: '🤝', color: hashColor('Sales'), headcount: 5, budget: '$500K', createdAt: '2024-01-01', updatedAt: '2024-01-01' }
@@ -80,8 +81,8 @@ export async function getDepartment(id: number | string): Promise<DepartmentView
   try {
     const data = await api.getDepartment(id)
     return toFrontend(data)
-  } catch (err: any) {
-    if (err.status) throw err
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
     return { id: Number(id) || 1, name: 'Engineering', code: 'ENG', description: 'Engineering Dept', head: 'Alice', status: 'active', icon: '💻', color: hashColor('Engineering'), headcount: 10, budget: '$1M', createdAt: '2024-01-01', updatedAt: '2024-01-01' }
   }
 }
@@ -90,8 +91,8 @@ export async function createDepartment(data: Partial<DepartmentPayload>): Promis
   try {
     const res = await api.createDepartment(data)
     return toFrontend(res)
-  } catch (err: any) {
-    if (err.status) throw err
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
     return { id: Date.now(), name: data.name || 'MockDept', code: data.code || 'MOCK', description: data.description || '', head: data.head || '', status: data.status || 'active', icon: '💻', color: hashColor(data.name || 'MockDept'), headcount: 0, budget: '—', createdAt: '2024-01-01', updatedAt: '2024-01-01' }
   }
 }
@@ -100,8 +101,8 @@ export async function updateDepartment(id: number | string, data: Partial<Depart
   try {
     const res = await api.updateDepartment(id, data)
     return toFrontend(res)
-  } catch (err: any) {
-    if (err.status) throw err
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
     return { id: Number(id) || 1, name: data.name || 'UpdatedMock', code: data.code || 'MOCK', description: data.description || '', head: data.head || '', status: data.status || 'active', icon: '💻', color: hashColor(data.name || 'UpdatedMock'), headcount: 10, budget: '—', createdAt: '2024-01-01', updatedAt: '2024-01-01' }
   }
 }
@@ -109,7 +110,7 @@ export async function updateDepartment(id: number | string, data: Partial<Depart
 export async function deleteDepartment(id: number | string): Promise<void> {
   try {
     await api.deleteDepartment(id)
-  } catch (err: any) {
-    if (err.status) throw err
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
   }
 }

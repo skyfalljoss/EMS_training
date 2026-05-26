@@ -56,7 +56,7 @@ export default function EmployeeProfile() {
             <div className="profile-avatar" style={{background:e.color}}>{e.name.split(' ').map(n => n[0]).join('')}</div>
             <div className="profile-info">
               <h1>{e.name}</h1>
-              <div className="role">{e.role}{e.dept}</div>
+              <div className="role">{e.role}  -  {e.dept}</div>
               <div className="profile-meta">
                 <span>{e.location}</span>
               </div>

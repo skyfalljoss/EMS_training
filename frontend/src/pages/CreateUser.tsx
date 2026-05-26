@@ -142,11 +142,11 @@ export default function CreateUser() {
                 <tr><td colSpan={5} className="no-data">No pending registration requests</td></tr>
               ) : (
                 pending.map(u => {
-                  const emp = empById[u.employee_id]
+                  const emp = u.employee_id ? empById[u.employee_id] : null
                   return (
                     <tr key={u.id}>
                       <td><div className="emp-name">{u.email}</div></td>
-                      <td>{emp ? `${emp.name} (#${emp.id})` : `#${u.employee_id}`}</td>
+                      <td>{emp ? `${emp.name} (#${emp.id})` : <span className="text-muted" style={{ fontStyle: 'italic' }}>Unlinked</span>}</td>
                       <td>{roleLabel[u.auth_role] ?? u.auth_role}</td>
                       <td>{fmtDate(u.created_at)}</td>
                       <td>
@@ -191,11 +191,11 @@ export default function CreateUser() {
                 <tr><td colSpan={6} className="no-data">No users</td></tr>
               ) : (
                 users.map(u => {
-                  const emp = empById[u.employee_id]
+                  const emp = u.employee_id ? empById[u.employee_id] : null
                   return (
                     <tr key={u.id}>
                       <td><div className="emp-name">{u.email}</div></td>
-                      <td>{emp ? emp.name : `#${u.employee_id}`}</td>
+                      <td>{emp ? emp.name : <span className="text-muted" style={{ fontStyle: 'italic' }}>Unlinked</span>}</td>
                       <td>
                         {editingRole === u.id ? (
                           <div className="flex-gap-6">

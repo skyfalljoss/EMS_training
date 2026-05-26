@@ -5,6 +5,7 @@ import GuestRoute from './components/GuestRoute'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import TweaksPanel from './components/TweaksPanel'
+import LoadingSpinner from './components/LoadingSpinner'
 import './styles/design.css'
 
 const Login = lazy(() => import('./pages/Login'))
@@ -60,7 +61,7 @@ export default function App() {
           onToggleTheme={toggleTheme}
         />}
         <div className="screens">
-          <Suspense fallback={null}>
+          <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
               <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />

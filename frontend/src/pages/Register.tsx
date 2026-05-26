@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { isApiError } from '../types/api'
+import { registerSchema, firstError } from '../validation'
 
 export default function Register() {
   const { register } = useAuth()
@@ -18,8 +19,9 @@ export default function Register() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+    const result = registerSchema.safeParse({ name, email, password, confirmPassword })
+    if (!result.success) {
+      setError(firstError(result.error))
       return
     }
     setSaving(true)
@@ -27,7 +29,7 @@ export default function Register() {
       await register(name, email, password)
       setName(''); setEmail(''); setPassword(''); setConfirmPassword('')
       setSuccess(true)
-      setTimeout(() => navigate('/login'), 2000)
+      setTimeout(() => navigate('/login'), 9000)
     } catch (err) {
       if (isApiError(err) && err.status === 400) {
         setError(err.message || 'Email already registered.')
@@ -45,9 +47,8 @@ export default function Register() {
     return (
       <div className="login-page">
         <div className="glass-card login-card">
-          <h1>Check Your Email</h1>
-          <p>Registration submitted. An admin will activate your account.</p>
-          <p className="subtitle">Redirecting to login…</p>
+          <p style={{ textAlign: 'center', fontSize: '1.3rem' }}>Registration submitted. An admin will activate your account.</p>
+          <p className="subtitle" style={{ textAlign: 'center' }}>Redirecting to login…</p>
         </div>
       </div>
     )

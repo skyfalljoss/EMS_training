@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import type { PendingLeave } from '../types/leave'
+import type { LeaveBalance, PendingLeave } from '../types/leave'
 
 export default function Leave() {
   // Using empty array to replace deleted mock pendingLeaves
   const [leaves, setLeaves] = useState<PendingLeave[]>([])
 
   // Hardcoding an empty array to replace deleted mock leaveBalances
-  const leaveBalances: any[] = []
+  const leaveBalances: LeaveBalance[] = []
 
   function handleApprove(idx: number) {
     setLeaves(prev => prev.filter((_, i) => i !== idx))

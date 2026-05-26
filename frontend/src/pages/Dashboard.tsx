@@ -55,7 +55,7 @@ export default function Dashboard() {
 
   const totalEmployees = employees.length
   const activeNow = employees.filter(e => e.status === 'active').length
-  const onLeave = employees.filter(e => e.status === 'on_leave' || e.status === 'on-leave').length
+  const onLeave = employees.filter(e => e.status === 'on_leave').length
   const terminated = employees.filter(e => e.status === 'terminated').length
 
   const employeeNameMap = new Map(employees.map(e => [e.id, e.name]))

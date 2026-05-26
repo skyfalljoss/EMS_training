@@ -40,7 +40,7 @@ export default function Employees() {
       <div className="glass-card">
         <div className="card-header">
           <div className="filter-row mb-0">
-            {['all','active','inactive','on-leave','terminated'].map(f => (
+            {['all','active','inactive','on_leave','terminated'].map(f => (
               <span 
                 key={f} 
                 className={`filter-pill${filter === f ? ' active' : ''}`} 
@@ -49,7 +49,7 @@ export default function Employees() {
                   setCurrentPage(1)
                 }}
               >
-                {f === 'all' ? 'All' : f === 'on-leave' ? 'On Leave' : f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === 'all' ? 'All' : f === 'on_leave' ? 'On Leave' : f.charAt(0).toUpperCase() + f.slice(1)}
               </span>
             ))}
           </div>

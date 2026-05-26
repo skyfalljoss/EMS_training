@@ -6,6 +6,7 @@ import type {
   DepartmentStatus,
   DepartmentView,
 } from '../types/department'
+import { departmentSchema, firstError } from '../validation'
 
 interface FormState {
   name: string
@@ -53,11 +54,12 @@ export default function DepartmentFormModal({ open, department, onClose }: Props
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!form.name || !form.code) {
-      setError('Name and code are required.')
+    setError('')
+    const result = departmentSchema.safeParse(form)
+    if (!result.success) {
+      setError(firstError(result.error))
       return
     }
-    setError('')
     try {
       const payload: Partial<DepartmentPayload> = {
         ...form,

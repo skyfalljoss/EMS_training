@@ -2,7 +2,6 @@ export type EmployeeStatus =
   | 'active'
   | 'inactive'
   | 'on_leave'
-  | 'on-leave'
   | 'terminated'
 
 export interface EmployeeApi {

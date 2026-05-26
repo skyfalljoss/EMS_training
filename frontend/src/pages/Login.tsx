@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { isApiError } from '../types/api'
+import { loginSchema, firstError } from '../validation'
 
 interface LocationState {
   from?: { pathname?: string }
@@ -29,6 +30,11 @@ export default function Login() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
+    const result = loginSchema.safeParse({ email, password })
+    if (!result.success) {
+      setError(firstError(result.error))
+      return
+    }
     setSaving(true)
     try {
       await login(email, password)

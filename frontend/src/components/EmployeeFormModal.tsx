@@ -4,6 +4,7 @@ import { useCreateEmployee, useUpdateEmployee } from '../hooks/useEmployeesQuery
 import { useDepartmentsList } from '../hooks/useDepartmentsQuery'
 import { EMPLOYEE_STATUSES, EMPLOYEE_STATUS_LABELS } from '../constants/employeeStatus'
 import type { EmployeeStatus, EmployeeView } from '../types/employee'
+import { employeeSchema, firstError } from '../validation'
 
 interface FormState {
   name: string
@@ -60,7 +61,7 @@ export default function EmployeeFormModal({ open, employee, onClose }: Props) {
   const { data: departments = [] } = useDepartmentsList()
   const createMutation = useCreateEmployee()
   const updateMutation = useUpdateEmployee()
-  const [form, setForm] = useState<FormState>(emptyForm())
+  const [form, setForm] = useState<FormState>(() => employee ? fromEmployee(employee) : emptyForm())
   const [error, setError] = useState('')
 
   const [prevEmployee, setPrevEmployee] = useState<EmployeeView | null | undefined>(employee)
@@ -85,11 +86,12 @@ export default function EmployeeFormModal({ open, employee, onClose }: Props) {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!form.name || !form.email || !form.role || !form.department_id) {
-      setError('Name, email, role, and department are required.')
+    setError('')
+    const result = employeeSchema.safeParse(form)
+    if (!result.success) {
+      setError(firstError(result.error))
       return
     }
-    setError('')
     try {
       const payload: Record<string, unknown> = {
         ...form,
@@ -155,7 +157,7 @@ export default function EmployeeFormModal({ open, employee, onClose }: Props) {
               <label>Department <span className="required">*</span></label>
               <select value={form.department_id} onChange={setField('department_id')}>
                 <option value="">Select...</option>
-                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                {departments.map(d => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
               </select>
             </div>
             <div className="form-field">

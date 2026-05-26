@@ -1,5 +1,6 @@
 import * as api from '../api/employees'
 import * as deptApi from '../api/departments'
+import { isApiError } from '../types/api'
 import type {
   EmployeeApi,
   EmployeeFilters,
@@ -66,8 +67,8 @@ export async function listEmployees(filters: EmployeeFilters = {}): Promise<Empl
       }
       return fe
     })
-  } catch (err: any) {
-    if (err.status) throw err
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
     const mockEmployees: EmployeeView[] = [
       { id: 1, name: 'Mock Alice', email: 'alice@mock.com', dept: 'Engineering', department_id: 1, role: 'Developer', status: 'active', start: '2024-01-01', color: hashColor('Mock Alice'), phone: '—', location: '—', manager: '—', salary: '$80,000', rating: '4.5/5.0', date_of_birth: '—', national_id: '—' },
       { id: 2, name: 'Mock Bob', email: 'bob@mock.com', dept: 'Sales', department_id: 2, role: 'Manager', status: 'inactive', start: '2023-01-01', color: hashColor('Mock Bob'), phone: '—', location: '—', manager: '—', salary: '$90,000', rating: '4.0/5.0', date_of_birth: '—', national_id: '—' }
@@ -83,9 +84,15 @@ export async function listEmployees(filters: EmployeeFilters = {}): Promise<Empl
 export async function getEmployee(id: number | string): Promise<EmployeeView | null> {
   try {
     const data = await api.getEmployee(id)
-    return toFrontend(data)
-  } catch (err: any) {
-    if (err.status) throw err
+    const depts = await deptApi.listDepartments().catch(() => [])
+    const fe = toFrontend(data)
+    if (data.department_id != null) {
+      const d = depts.find(dept => dept.id === data.department_id)
+      if (d) fe.dept = d.name
+    }
+    return fe
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
     return { id: Number(id) || 1, name: 'Mock Alice', email: 'alice@mock.com', dept: 'Engineering', department_id: 1, role: 'Developer', status: 'active', start: '2024-01-01', color: hashColor('Mock Alice'), phone: '—', location: '—', manager: '—', salary: '$80,000', rating: '4.5/5.0', date_of_birth: '—', national_id: '—' }
   }
 }
@@ -93,9 +100,15 @@ export async function getEmployee(id: number | string): Promise<EmployeeView | n
 export async function createEmployee(data: Partial<EmployeePayload> & { department?: string }): Promise<EmployeeView> {
   try {
     const res = await api.createEmployee(data)
-    return toFrontend(res)
-  } catch (err: any) {
-    if (err.status) throw err
+    const depts = await deptApi.listDepartments().catch(() => [])
+    const fe = toFrontend(res)
+    if (res.department_id != null) {
+      const d = depts.find(dept => dept.id === res.department_id)
+      if (d) fe.dept = d.name
+    }
+    return fe
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
     return { id: Date.now(), name: data.name || 'MockUser', email: data.email || 'mock@mock.com', role: data.role || 'employee', status: data.status || 'active', dept: data.department || 'MockDept', department_id: data.department_id || 1, start: '2024-01-01', color: hashColor(data.name || 'MockUser'), phone: '—', location: '—', manager: '—', salary: '—', rating: '—', date_of_birth: '—', national_id: '—' }
   }
 }
@@ -103,9 +116,15 @@ export async function createEmployee(data: Partial<EmployeePayload> & { departme
 export async function updateEmployee(id: number | string, data: Partial<EmployeePayload> & { department?: string }): Promise<EmployeeView> {
   try {
     const res = await api.updateEmployee(id, data)
-    return toFrontend(res)
-  } catch (err: any) {
-    if (err.status) throw err
+    const depts = await deptApi.listDepartments().catch(() => [])
+    const fe = toFrontend(res)
+    if (res.department_id != null) {
+      const d = depts.find(dept => dept.id === res.department_id)
+      if (d) fe.dept = d.name
+    }
+    return fe
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
     return { id: Number(id) || 1, name: data.name || 'UpdatedMock', email: data.email || 'mock@mock.com', role: data.role || 'employee', status: data.status || 'active', dept: data.department || 'MockDept', department_id: data.department_id || 1, start: '2024-01-01', color: hashColor(data.name || 'UpdatedMock'), phone: '—', location: '—', manager: '—', salary: '—', rating: '—', date_of_birth: '—', national_id: '—' }
   }
 }
@@ -113,7 +132,7 @@ export async function updateEmployee(id: number | string, data: Partial<Employee
 export async function deleteEmployee(id: number | string): Promise<void> {
   try {
     await api.deleteEmployee(id)
-  } catch (err:any ) {
-    if (err.status) throw err
+  } catch (err: unknown) {
+    if (isApiError(err)) throw err
   }
 }

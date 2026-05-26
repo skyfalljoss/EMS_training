@@ -37,7 +37,7 @@ export interface RegisterResponse {
 export interface AuthUserAdmin {
   id: number
   email: string
-  employee_id: number
+  employee_id: number | null
   auth_role: Role
   is_active: boolean
   must_change_password?: boolean

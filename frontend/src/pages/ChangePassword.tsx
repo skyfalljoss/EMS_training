@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { changePasswordSchema, firstError } from '../validation'
 
 export default function ChangePassword() {
   const { changePassword, logout } = useAuth()
@@ -15,8 +16,9 @@ export default function ChangePassword() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
-    if (newPwd !== confirmPwd) {
-      setError('Passwords do not match.')
+    const result = changePasswordSchema.safeParse({ oldPwd, newPwd, confirmPwd })
+    if (!result.success) {
+      setError(firstError(result.error))
       return
     }
     setSaving(true)

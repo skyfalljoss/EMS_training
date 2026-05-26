@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from 'react'
 import { useCreateAuthUser } from '../hooks/useAuthQuery'
 import type { Role } from '../types/auth'
 import type { EmployeeView } from '../types/employee'
+import { authUserSchema, firstError } from '../validation'
 
 interface FormState {
   employee_id: string
@@ -59,11 +60,12 @@ export default function UserFormModal({ open, employees, onClose, onSaved }: Pro
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!form.employee_id || !form.email || !form.password) {
-      setValidationError('Employee, email, and password are required.')
+    setValidationError('')
+    const result = authUserSchema.safeParse(form)
+    if (!result.success) {
+      setValidationError(firstError(result.error))
       return
     }
-    setValidationError('')
     createAuthUser(
       {
         employeeId: Number(form.employee_id),
@@ -99,14 +101,14 @@ export default function UserFormModal({ open, employees, onClose, onSaved }: Pro
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="modal-body">
+        <form onSubmit={handleSubmit} className="modal-body" autoComplete="off">
           <div className="form-grid">
             <div className="form-field">
               <label>Employee <span className="required">*</span></label>
               <select value={form.employee_id} onChange={handleEmployeeChange} required>
                 <option value="">Select employee…</option>
                 {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>{emp.name} (#{emp.id})</option>
+                  <option key={emp.id} value={String(emp.id)}>{emp.name} (#{emp.id})</option>
                 ))}
               </select>
             </div>
@@ -114,6 +116,7 @@ export default function UserFormModal({ open, employees, onClose, onSaved }: Pro
               <label>Email <span className="required">*</span></label>
               <input
                 type="email"
+                autoComplete="off"
                 value={form.email}
                 onChange={setField('email')}
                 placeholder="email@company.com"
@@ -124,6 +127,7 @@ export default function UserFormModal({ open, employees, onClose, onSaved }: Pro
               <label>Password <span className="required">*</span></label>
               <input
                 type="password"
+                autoComplete="new-password"
                 value={form.password}
                 onChange={setField('password')}
                 placeholder="Min 8 chars, 1 upper, 1 digit, 1 special"
