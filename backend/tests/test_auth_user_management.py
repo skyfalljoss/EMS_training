@@ -150,16 +150,22 @@ def test_employee_delete_without_auth_user_still_works(api, auth_headers, unique
 
 def test_reject_user_does_not_delete_employee(api, auth_headers, unique_email):
     """Rejecting (deleting) an auth user keeps the linked employee alive."""
+    emp_resp = api.post("/employees/", json={
+        "name": "Keep Emp", "email": unique_email("keepe"),
+        "role": "Eng", "department_id": 1,
+    }, headers=auth_headers)
+    emp_id = emp_resp.json()["id"]
+
     email = unique_email("cac")
-    api.post("/auth/register", json={
-        "name": "Keep Emp", "email": email, "password": "TestUser@1234",
-    })
+    auth_resp = api.post("/auth/users", json={
+        "employee_id": emp_id,
+        "email": email,
+        "password": "TestUser@1234",
+        "auth_role": "employee",
+    }, headers=auth_headers)
+    user_id = auth_resp.json()["id"]
 
-    list_resp = api.get("/auth/users", headers=auth_headers)
-    created = next(u for u in list_resp.json() if u["email"] == email)
-    emp_id = created["employee_id"]
-
-    resp = api.delete(f"/auth/users/{created['id']}", headers=auth_headers)
+    resp = api.delete(f"/auth/users/{user_id}", headers=auth_headers)
     assert resp.status_code == 200
 
     get_resp = api.get(f"/employees/{emp_id}", headers=auth_headers)

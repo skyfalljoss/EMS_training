@@ -1,15 +1,15 @@
 """Tests for the RateLimitMiddleware.
 
-Constants matching app/middleware/ratelimit.py:
-    LOGIN_RATE_LIMIT    = 5   max requests per window
-    REGISTER_RATE_LIMIT = 3
-    WINDOW_SECONDS      = 60
+Rate limits are configured in app/core/settings.py (Settings class).
 """
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app.middleware.ratelimit import LOGIN_RATE_LIMIT, REGISTER_RATE_LIMIT
+from app.core.settings import settings
+
+LOGIN_RATE_LIMIT = settings.LOGIN_RATE_LIMIT
+REGISTER_RATE_LIMIT = settings.REGISTER_RATE_LIMIT
 
 
 @pytest.fixture

@@ -137,6 +137,22 @@ def test_create_employee_invalid_department_id(api, auth_headers, unique_email):
     assert response.status_code == 400
 
 
+def test_filter_by_status(api, auth_headers, unique_email):
+    # Create an employee with inactive status to test filtering
+    api.post(
+        "/employees",
+        json={"name": "Inactive User", "email": unique_email("inactive"), "role": "Tester", "department_id": 1, "status": "inactive"},
+        headers=auth_headers,
+    )
+    response = api.get("/employees", params={"status": "active"}, headers=auth_headers)
+    assert response.status_code == 200
+    assert all(e["status"] == "active" for e in response.json())
+
+    response = api.get("/employees", params={"status": "inactive"}, headers=auth_headers)
+    assert response.status_code == 200
+    assert all(e["status"] == "inactive" for e in response.json())
+
+
 def test_search_by_name(api, auth_headers):
     response = api.get("/employees", params={"name": "john"}, headers=auth_headers)
     assert response.status_code == 200
