@@ -3,11 +3,11 @@ FROM node:20-slim AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-
-ENV NODE_ENV=development
-RUN npm ci --production=false --include=dev --no-audit --no-fund
+RUN npm ci --include=dev --no-audit --no-fund
 
 COPY . .
+
+RUN npm install -g typescript
 
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
