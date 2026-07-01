@@ -1,9 +1,9 @@
-FROM node:22-alpine AS build
+FROM node:22-slim AS build
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN test -f package-lock.json && npm ci || npm install
+RUN if test -f package-lock.json; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . .
 
