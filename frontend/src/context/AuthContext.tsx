@@ -65,7 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string): Promise<AuthUser | null> => {
       const data = await authApi.login(email, password)
       localStorage.setItem('access_token', data.access_token)
-      setToken(data.access_token)
       const payload = decodeToken(data.access_token)
       let merged: AuthUser | null = payload as AuthUser | null
       try {
@@ -75,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // ignore — fall back to token-only payload
       }
       setUser(merged)
+      setToken(data.access_token)
       return merged
     },
     [],
@@ -97,7 +97,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (old_pwd: string, new_pwd: string): Promise<AuthUser | null> => {
       const data = await authApi.changePassword(old_pwd, new_pwd)
       localStorage.setItem('access_token', data.access_token)
-      setToken(data.access_token)
       const payload = decodeToken(data.access_token)
       let merged: AuthUser | null = payload as AuthUser | null
       try {
@@ -107,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // ignore
       }
       setUser(merged)
+      setToken(data.access_token)
       return merged
     },
     [],

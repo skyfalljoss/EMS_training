@@ -4,6 +4,7 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import Login from '../pages/Login'
 import { AuthProvider } from '../context/AuthContext'
 import { ApiError } from '../types/api'
+import GuestRoute from '../components/GuestRoute'
 
 const mocks = vi.hoisted(() => ({
   login: vi.fn(),
@@ -93,7 +94,7 @@ test('waits for login to finish before navigating to dashboard', async () => {
       <MemoryRouter initialEntries={["/login"]}>
         <LocationDisplay />
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/dashboard" element={<div>Dashboard</div>} />
         </Routes>
       </MemoryRouter>
