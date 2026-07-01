@@ -164,6 +164,20 @@ describe('api request wrapper', () => {
       await expect(api.get('/employees')).rejects.toThrow(ApiError)
     })
 
+    it('does not clear a fresh token when an unauthenticated data request returns 401', async () => {
+      localStorage.setItem('access_token', 'fresh-token')
+      const axiosError = {
+        response: { status: 401, data: { detail: 'Authentication required' } },
+        config: { url: '/employees', headers: {} },
+      }
+      mockFns.isAxiosError.mockReturnValue(true)
+      mockFns.get.mockRejectedValue(axiosError)
+
+      await expect(api.get('/employees')).rejects.toThrow(ApiError)
+
+      expect(localStorage.getItem('access_token')).toBe('fresh-token')
+    })
+
     it('throws ApiError with detail message on 403', async () => {
       const axiosError = { response: { status: 403, data: { detail: 'You are not allowed' } } }
       mockFns.isAxiosError.mockReturnValue(true)

@@ -26,12 +26,32 @@ function redirectToLogin(): void {
   }
 }
 
+function getBearerTokenFromHeaders(headers: unknown): string | null {
+  if (!headers || typeof headers !== 'object') return null
+
+  const maybeGet = (headers as { get?: (name: string) => unknown }).get
+  const authorization = typeof maybeGet === 'function'
+    ? maybeGet.call(headers, 'Authorization')
+    : (headers as Record<string, unknown>).Authorization ?? (headers as Record<string, unknown>).authorization
+
+  if (typeof authorization !== 'string') return null
+  return authorization.startsWith('Bearer ') ? authorization.slice('Bearer '.length) : null
+}
+
+function shouldRedirectToLogin(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return false
+  const failedRequestToken = getBearerTokenFromHeaders(error.config?.headers)
+  return !!failedRequestToken && localStorage.getItem('access_token') === failedRequestToken
+}
+
 function handleError(error: unknown): never {
   if (axios.isAxiosError(error) && error.response) {
     const { status, data } = error.response
     const detail = (data as { detail?: string })?.detail
     if (status === 401) {
-      redirectToLogin()
+      if (shouldRedirectToLogin(error)) {
+        redirectToLogin()
+      }
       throw new ApiError('Session expired. Please login again.', 401)
     }
     if (status === 403) {
