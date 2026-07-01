@@ -3,7 +3,9 @@ FROM node:20-slim AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --include=dev --no-audit --no-fund
+
+ENV NODE_ENV=development
+RUN npm ci --production=false --include=dev --no-audit --no-fund
 
 COPY . .
 
