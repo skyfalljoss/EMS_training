@@ -10,7 +10,7 @@ interface LocationState {
 }
 
 export default function Login() {
-  const { login, isAuthenticated } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
@@ -20,12 +20,6 @@ export default function Login() {
 
   const state = location.state as LocationState | null
   const from = state?.from?.pathname ?? '/dashboard'
-
-  
-  if (isAuthenticated) {
-    navigate(from, { replace: true })
-    return null
-  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
